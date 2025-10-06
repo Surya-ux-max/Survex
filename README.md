@@ -4,14 +4,14 @@ A comprehensive full-stack platform for Sri Eshwar College of Engineering that g
 
 ## 🎯 Overview
 
-Windsurf is a campus sustainability platform where students participate in eco-challenges, share achievements in a social feed, earn points and badges, while faculty and administrators manage challenges, verify submissions, and track analytics.
+Survex is a campus sustainability platform where students participate in eco-challenges, share achievements in a social feed, earn points and badges, while faculty and administrators manage challenges, verify submissions, and track analytics.
 
 ## ✨ Features
 
 ### 🔐 Authentication & Roles
 - **JWT-based authentication** with role-based access control
 - **Google OAuth integration** (domain-restricted to college emails)
-- **Three user roles**: Student, Faculty, Admin
+- **Two user roles**: Student, Admin
 - **Secure password handling** with bcrypt
 
 ### 🏡 Student Features
@@ -47,10 +47,6 @@ Windsurf is a campus sustainability platform where students participate in eco-c
 - **React.js 18** with modern hooks and functional components
 - **Tailwind CSS** for responsive, utility-first styling
 - **React Router** for client-side routing
-- **Axios** for API communication
-- **Chart.js & React-ChartJS-2** for analytics visualization
-- **Lucide React** for consistent iconography
-- **Vite** for fast development and building
 
 ### Backend
 - **Python Flask** REST API with modular blueprint structure
@@ -59,10 +55,6 @@ Windsurf is a campus sustainability platform where students participate in eco-c
 - **bcrypt** for secure password hashing
 - **Flask-CORS** for cross-origin resource sharing
 - **Google OAuth 2.0** for social authentication
-
-### Storage & Media
-- **AWS S3** or **Cloudinary** for image/video storage
-- **Local fallback** for development environments
 
 ### Database Schema
 ```
