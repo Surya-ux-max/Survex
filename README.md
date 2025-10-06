@@ -364,18 +364,6 @@ VITE_API_URL=https://your-api-domain.com/api
 - Test **API endpoints** before committing
 - Ensure **responsive design** on all screen sizes
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **Sri Eshwar College of Engineering** for the sustainability initiative
-- **React.js** and **Flask** communities for excellent documentation
-- **Tailwind CSS** for the utility-first CSS framework
-- **MongoDB** for flexible document storage
-- **Lucide** for beautiful icons
-
 ## 📞 Support
 
 For support and questions:
