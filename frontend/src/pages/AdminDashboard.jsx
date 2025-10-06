@@ -133,6 +133,17 @@ const AdminDashboard = ({ user, onNavigate, submissions: propSubmissions, onSubm
 
       const mockSubmissions = [
         {
+          _id: '0',
+          challengeId: '10',
+          challengeTitle: 'Campus Clean-up Drive',
+          studentId: '0',
+          studentName: 'Suryaprakash S',
+          submissionDate: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
+          status: 'Pending',
+          proofImage: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+          description: 'Organized and participated in campus clean-up drive. Collected waste from multiple areas and properly disposed of recyclable materials.'
+        },
+        {
           _id: '1',
           challengeId: '1',
           challengeTitle: 'Plastic-Free Week Challenge',
@@ -140,8 +151,8 @@ const AdminDashboard = ({ user, onNavigate, submissions: propSubmissions, onSubm
           studentName: 'Priya Sharma',
           submissionDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
           status: 'Pending',
-          proofImage: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09',
-          description: 'Completed the plastic-free week by using reusable bags, bottles, and containers.'
+          proofImage: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+          description: 'Completed the plastic-free week by using reusable bags, bottles, and containers. Documented daily progress with photos.'
         },
         {
           _id: '2',
@@ -151,8 +162,8 @@ const AdminDashboard = ({ user, onNavigate, submissions: propSubmissions, onSubm
           studentName: 'Rahul Kumar',
           submissionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
           status: 'Pending',
-          proofImage: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b',
-          description: 'Planted 3 saplings in the campus garden and committed to their maintenance.'
+          proofImage: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+          description: 'Planted 3 saplings in the campus garden and committed to their maintenance. Organized team of 5 volunteers.'
         },
         {
           _id: '3',
@@ -162,16 +173,49 @@ const AdminDashboard = ({ user, onNavigate, submissions: propSubmissions, onSubm
           studentName: 'Anita Patel',
           submissionDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
           status: 'Approved',
-          proofImage: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e',
+          proofImage: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
           description: 'Reduced energy consumption by 25% through LED bulbs and efficient appliance usage.'
+        },
+        {
+          _id: '4',
+          challengeId: '4',
+          challengeTitle: 'Sustainable Transportation Week',
+          studentId: '4',
+          studentName: 'Vikram Singh',
+          submissionDate: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+          status: 'Pending',
+          proofImage: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+          description: 'Cycled to campus every day for a week. Tracked 50km total distance and saved fuel costs.'
+        },
+        {
+          _id: '5',
+          challengeId: '5',
+          challengeTitle: 'Water Conservation Challenge',
+          studentId: '5',
+          studentName: 'Sneha Reddy',
+          submissionDate: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+          status: 'Pending',
+          proofImage: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+          description: 'Installed water-saving devices and reduced daily consumption by 30%. Created awareness campaign for dormmates.'
+        },
+        {
+          _id: '6',
+          challengeId: '6',
+          challengeTitle: 'DIY Solar Charger Project',
+          studentId: '6',
+          studentName: 'Arjun Nair',
+          submissionDate: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+          status: 'Rejected',
+          proofImage: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+          description: 'Built a solar charger using recycled materials. Successfully charged phone and small devices.'
         }
       ];
 
       const mockAnalytics = {
         totalStudents: 156,
         activeChallenges: 8,
-        totalSubmissions: 234,
-        pendingReviews: 12,
+        totalSubmissions: 7,
+        pendingReviews: 5, // Based on static submissions (5 pending out of 7 total)
         totalPointsAwarded: 15680,
         averageParticipation: 78,
         monthlyGrowth: 15.5,
@@ -546,91 +590,60 @@ const AdminDashboard = ({ user, onNavigate, submissions: propSubmissions, onSubm
     }, 3000);
   };
 
-  const handleSubmissionReview = async (submissionId, action) => {
-    try {
-      // Call backend API for submission review
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://10.11.144.88:5000/api/submissions/${submissionId}/review`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          action: action,
-          admin_comment: action === 'approve' ? 'Submission approved by admin' : 'Submission rejected by admin'
-        })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        
-        // Use global submission review handler if available
-        if (onSubmissionReview) {
-          onSubmissionReview(submissionId, action);
-        } else {
-          // Fallback to local state management
-          setSubmissions(prev => 
-            prev.map(submission => 
-              submission._id === submissionId 
-                ? { ...submission, status: action === 'approve' ? 'Approved' : 'Rejected' }
-                : submission
-            )
-          );
-          
-          if (action === 'approve') {
-            // Update student points (in real app, this would be handled by backend)
-            const submission = submissions.find(s => s._id === submissionId);
-            const challenge = challenges.find(c => c._id === submission.challengeId);
-            
-            setStudents(prev => 
-              prev.map(student => 
-                student._id === submission.studentId 
-                  ? { 
-                      ...student, 
-                      eco_points: student.eco_points + (challenge?.points || 50),
-                      challenges_completed: student.challenges_completed + 1
-                    }
-                  : student
-              )
-            );
-          }
-        }
-        
-        // Show appropriate popup
-        if (action === 'approve') {
-          setShowApprovalPopup(true);
-          setTimeout(() => setShowApprovalPopup(false), 3000);
-        } else {
-          setShowRejectionPopup(true);
-          setTimeout(() => setShowRejectionPopup(false), 3000);
-        }
-      } else {
-        throw new Error('Failed to review submission');
-      }
-    } catch (error) {
-      console.error('Error reviewing submission:', error);
-      // Fallback to local state management on error
-      if (onSubmissionReview) {
-        onSubmissionReview(submissionId, action);
-      } else {
-        setSubmissions(prev => 
-          prev.map(submission => 
-            submission._id === submissionId 
-              ? { ...submission, status: action === 'approve' ? 'Approved' : 'Rejected' }
-              : submission
-          )
-        );
-      }
+  const handleSubmissionReview = (submissionId, action) => {
+    // Work with static data only - no API calls
+    const submission = submissions.find(s => s._id === submissionId);
+    const challenge = challenges.find(c => c._id === submission?.challengeId);
+    
+    // Update submission status
+    setSubmissions(prev => 
+      prev.map(sub => 
+        sub._id === submissionId 
+          ? { ...sub, status: action === 'approve' ? 'Approved' : 'Rejected' }
+          : sub
+      )
+    );
+    
+    // If approved, update student points and challenge completion
+    if (action === 'approve' && submission) {
+      setStudents(prev => 
+        prev.map(student => 
+          student._id === submission.studentId 
+            ? { 
+                ...student, 
+                eco_points: student.eco_points + (challenge?.points || 50),
+                challenges_completed: student.challenges_completed + 1
+              }
+            : student
+        )
+      );
       
-      // Show appropriate popup even on error
-      if (action === 'approve') {
-        setShowApprovalPopup(true);
-        setTimeout(() => setShowApprovalPopup(false), 3000);
-      } else {
-        setShowRejectionPopup(true);
-        setTimeout(() => setShowRejectionPopup(false), 3000);
-      }
+      // Update analytics
+      setAnalytics(prev => ({
+        ...prev,
+        totalPointsAwarded: prev.totalPointsAwarded + (challenge?.points || 50),
+        pendingReviews: Math.max(0, prev.pendingReviews - 1)
+      }));
+    } else if (action === 'reject') {
+      // Update analytics for rejection
+      setAnalytics(prev => ({
+        ...prev,
+        pendingReviews: Math.max(0, prev.pendingReviews - 1)
+      }));
+    }
+    
+    // Show appropriate popup
+    if (action === 'approve') {
+      setShowApprovalPopup(true);
+      setTimeout(() => setShowApprovalPopup(false), 3000);
+    } else {
+      setShowRejectionPopup(true);
+      setTimeout(() => setShowRejectionPopup(false), 3000);
+    }
+    
+    // Call global handler if available
+    if (onSubmissionReview) {
+      onSubmissionReview(submissionId, action);
     }
   };
 
@@ -1333,7 +1346,33 @@ const AdminDashboard = ({ user, onNavigate, submissions: propSubmissions, onSubm
               }}>
                 <h4 style={{ color: '#2E7D32', marginBottom: '15px' }}>Recent Activity</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {submissions.slice(0, 3).map(submission => (
+                  {/* Latest activity from current user */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '10px',
+                    backgroundColor: 'white',
+                    borderRadius: '8px',
+                    border: '1px solid #E0E0E0'
+                  }}>
+                    <div>
+                      <strong>Suryaprakash S</strong> submitted proof for{' '}
+                      <em>Campus Clean-up Drive</em>
+                    </div>
+                    <span style={{
+                      padding: '4px 8px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      backgroundColor: '#FFF3E0',
+                      color: '#F57C00'
+                    }}>
+                      pending
+                    </span>
+                  </div>
+                  
+                  {/* Other recent activities */}
+                  {submissions.slice(0, 2).map(submission => (
                     <div key={submission._id} style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -1351,13 +1390,62 @@ const AdminDashboard = ({ user, onNavigate, submissions: propSubmissions, onSubm
                         padding: '4px 8px',
                         borderRadius: '12px',
                         fontSize: '12px',
-                        backgroundColor: submission.status === 'Pending' ? '#FFF3E0' : '#E8F5E8',
-                        color: submission.status === 'Pending' ? '#F57C00' : '#2E7D32'
+                        backgroundColor: submission.status === 'Pending' ? '#FFF3E0' : submission.status === 'Approved' ? '#E8F5E8' : '#FFEBEE',
+                        color: submission.status === 'Pending' ? '#F57C00' : submission.status === 'Approved' ? '#2E7D32' : '#D32F2F'
                       }}>
-                        {submission.status}
+                        {submission.status.toLowerCase()}
                       </span>
                     </div>
                   ))}
+                  
+                  {/* Additional recent activities */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '10px',
+                    backgroundColor: 'white',
+                    borderRadius: '8px',
+                    border: '1px solid #E0E0E0'
+                  }}>
+                    <div>
+                      <strong>Kavya Iyer</strong> joined challenge{' '}
+                      <em>Organic Composting Workshop</em>
+                    </div>
+                    <span style={{
+                      padding: '4px 8px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      backgroundColor: '#E3F2FD',
+                      color: '#1976D2'
+                    }}>
+                      joined
+                    </span>
+                  </div>
+                  
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '10px',
+                    backgroundColor: 'white',
+                    borderRadius: '8px',
+                    border: '1px solid #E0E0E0'
+                  }}>
+                    <div>
+                      <strong>Meera Krishnan</strong> earned{' '}
+                      <em>150 points</em> from Green Tech Hackathon
+                    </div>
+                    <span style={{
+                      padding: '4px 8px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      backgroundColor: '#E8F5E8',
+                      color: '#2E7D32'
+                    }}>
+                      completed
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
