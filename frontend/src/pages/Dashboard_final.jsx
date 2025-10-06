@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const Dashboard = ({ user, onNavigate }) => {
+const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpdateJoinedChallenge }) => {
   const [challenges, setChallenges] = useState([]);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -9,11 +9,11 @@ const Dashboard = ({ user, onNavigate }) => {
   const [activeTab, setActiveTab] = useState('challenges');
   const [newPost, setNewPost] = useState('');
   const [postImage, setPostImage] = useState(null);
-  const [joinedChallenges, setJoinedChallenges] = useState([]);
   const [showRewardsPopup, setShowRewardsPopup] = useState(false);
   const [redeemPoints, setRedeemPoints] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [showSharePopup, setShowSharePopup] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -24,10 +24,88 @@ const Dashboard = ({ user, onNavigate }) => {
       const token = localStorage.getItem('token');
       const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-      // Load challenges
-      const challengesRes = await fetch('http://localhost:5000/api/challenges', { headers });
-      const challengesData = await challengesRes.json();
-      setChallenges(challengesData.challenges || []);
+      // Load challenges (using same mock data as AllChallenges)
+      const mockChallenges = [
+        {
+          _id: '1',
+          title: 'Plastic-Free Week Challenge',
+          description: 'Eliminate single-use plastics from your daily routine for one week.',
+          category: 'Waste Reduction',
+          difficulty: 'Medium',
+          points: 50,
+          duration: '7 days',
+          participants: 45,
+          status: 'Active',
+          requirements: ['Document daily plastic usage', 'Find alternatives', 'Share progress'],
+          tips: ['Use reusable bags', 'Carry water bottle', 'Choose bulk items']
+        },
+        {
+          _id: '2',
+          title: 'Campus Tree Planting',
+          description: 'Plant and maintain trees around the campus area.',
+          category: 'Environmental',
+          difficulty: 'Easy',
+          points: 75,
+          duration: '1 day',
+          participants: 32,
+          status: 'Active',
+          requirements: ['Attend planting session', 'Plant minimum 2 trees', 'Commit to maintenance'],
+          tips: ['Wear comfortable clothes', 'Bring gloves', 'Stay hydrated']
+        },
+        {
+          _id: '3',
+          title: 'Energy Conservation Week',
+          description: 'Reduce energy consumption in your dorm/home by 20%.',
+          category: 'Energy',
+          difficulty: 'Hard',
+          points: 100,
+          duration: '7 days',
+          participants: 28,
+          status: 'Active',
+          requirements: ['Track energy usage', 'Implement conservation methods', 'Report savings'],
+          tips: ['Use LED bulbs', 'Unplug devices', 'Optimize AC usage']
+        },
+        {
+          _id: '4',
+          title: 'Sustainable Transportation',
+          description: 'Use eco-friendly transport for all campus commutes.',
+          category: 'Transportation',
+          difficulty: 'Medium',
+          points: 60,
+          duration: '5 days',
+          participants: 38,
+          status: 'Active',
+          requirements: ['Use bike/walk/public transport', 'Log daily commutes', 'Calculate carbon savings'],
+          tips: ['Plan routes ahead', 'Use campus bike sharing', 'Walk with friends']
+        },
+        {
+          _id: '5',
+          title: 'Zero Food Waste Challenge',
+          description: 'Minimize food waste through smart planning and composting.',
+          category: 'Waste Reduction',
+          difficulty: 'Medium',
+          points: 80,
+          duration: '10 days',
+          participants: 22,
+          status: 'Active',
+          requirements: ['Plan meals', 'Compost scraps', 'Track waste reduction'],
+          tips: ['Buy only needed items', 'Store food properly', 'Share excess food']
+        },
+        {
+          _id: '6',
+          title: 'Water Conservation Drive',
+          description: 'Implement water-saving techniques and track usage.',
+          category: 'Water',
+          difficulty: 'Easy',
+          points: 40,
+          duration: '7 days',
+          participants: 55,
+          status: 'Active',
+          tips: ['Fix leaks immediately', 'Take shorter showers', 'Collect rainwater']
+        }
+      ];
+      
+      setChallenges(mockChallenges);
 
       // Load posts (with mock data)
       const mockPosts = [
@@ -118,11 +196,8 @@ const Dashboard = ({ user, onNavigate }) => {
     if (newPost.trim()) {
       const newPostData = {
         _id: Date.now().toString(),
+        user: user?.name || 'Anonymous',
         content: newPost,
-        student: { 
-          name: user?.name || 'You', 
-          department: user?.department || 'Computer Science' 
-        },
         timestamp: new Date().toISOString(),
         likes: 0,
         comments: [],
@@ -130,29 +205,45 @@ const Dashboard = ({ user, onNavigate }) => {
         image: postImage ? URL.createObjectURL(postImage) : null
       };
       
-      setPosts(prevPosts => [newPostData, ...prevPosts]);
+      setPosts(prev => [newPostData, ...prev]);
       setNewPost('');
       setPostImage(null);
       
-      // Reset file input
-      const fileInput = document.getElementById('post-image');
-      if (fileInput) fileInput.value = '';
+      // Show success popup
+      setShowSharePopup(true);
+      setTimeout(() => setShowSharePopup(false), 3000);
     }
   };
 
   const handleJoinChallenge = (challengeId) => {
-    if (!joinedChallenges.includes(challengeId)) {
-      setJoinedChallenges(prev => [...prev, challengeId]);
-      alert('Successfully joined the challenge! You can now submit proof.');
+    const challenge = challenges.find(c => c._id === challengeId);
+    const isAlreadyJoined = joinedChallenges.some(jc => jc.challengeId === challengeId);
+    
+    if (!isAlreadyJoined && challenge) {
+      const success = onJoinChallenge(challengeId, challenge);
+      if (success) {
+        alert('Successfully joined the challenge! You can now track your progress in "My Challenges".');
+      }
+    } else if (isAlreadyJoined) {
+      alert('You have already joined this challenge! Check "My Challenges" to track your progress.');
     }
   };
 
   const handleSubmitProof = (challengeId) => {
-    if (joinedChallenges.includes(challengeId)) {
+    const joinedChallenge = joinedChallenges.find(jc => jc.challengeId === challengeId);
+    if (joinedChallenge) {
+      onUpdateJoinedChallenge(challengeId, {
+        submittedProof: true,
+        proofStatus: 'under_review'
+      });
       alert('Proof submitted successfully! It will be reviewed by admin.');
     } else {
       alert('Please join the challenge first before submitting proof.');
     }
+  };
+
+  const isJoined = (challengeId) => {
+    return joinedChallenges.some(jc => jc.challengeId === challengeId);
   };
 
   const handleRedeemPoints = () => {
@@ -856,7 +947,7 @@ const Dashboard = ({ user, onNavigate }) => {
               🎯 Available Challenges
             </button>
             <button
-              onClick={() => setActiveTab('my-challenges')}
+              onClick={() => onNavigate('my-challenges')}
               style={{
                 padding: window.innerWidth < 768 ? '10px 15px' : '15px 25px',
                 border: 'none',
@@ -864,11 +955,17 @@ const Dashboard = ({ user, onNavigate }) => {
                 fontSize: window.innerWidth < 768 ? '12px' : '14px',
                 fontWeight: 'bold',
                 cursor: 'pointer',
-                borderBottom: activeTab === 'my-challenges' ? '3px solid #2E7D32' : '3px solid transparent',
-                color: activeTab === 'my-challenges' ? '#2E7D32' : '#666',
+                borderBottom: '3px solid transparent',
+                color: '#666',
                 transition: 'all 0.3s',
                 width: window.innerWidth < 480 ? '100%' : 'auto',
                 textAlign: 'center'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.color = '#2E7D32';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.color = '#666';
               }}
             >
               📋 My Challenges
@@ -1037,12 +1134,12 @@ const Dashboard = ({ user, onNavigate }) => {
                         <button
                           onClick={() => handleSubmitProof(challenge._id)}
                           style={{
-                            backgroundColor: joinedChallenges.includes(challenge._id) ? '#2E7D32' : '#999',
+                            backgroundColor: isJoined(challenge._id) ? '#2E7D32' : '#999',
                             color: 'white',
                             border: 'none',
                             padding: '8px 16px',
                             borderRadius: '6px',
-                            cursor: joinedChallenges.includes(challenge._id) ? 'pointer' : 'not-allowed',
+                            cursor: isJoined(challenge._id) ? 'pointer' : 'not-allowed',
                             fontSize: '12px'
                           }}
                         >
@@ -1054,7 +1151,7 @@ const Dashboard = ({ user, onNavigate }) => {
                         onClick={() => handleJoinChallenge(challenge._id)}
                         style={{
                           width: '100%',
-                          backgroundColor: joinedChallenges.includes(challenge._id) ? '#4CAF50' : '#2E7D32',
+                          backgroundColor: isJoined(challenge._id) ? '#4CAF50' : '#2E7D32',
                           color: 'white',
                           border: 'none',
                           padding: '12px',
@@ -1064,7 +1161,7 @@ const Dashboard = ({ user, onNavigate }) => {
                           fontWeight: 'bold'
                         }}
                       >
-                        {joinedChallenges.includes(challenge._id) ? '✅ Joined' : '🚀 Join Challenge'}
+                        {isJoined(challenge._id) ? '✅ Joined' : '🚀 Join Challenge'}
                       </button>
                     </div>
                   ))
@@ -1078,161 +1175,6 @@ const Dashboard = ({ user, onNavigate }) => {
             </div>
           )}
 
-          {activeTab === 'my-challenges' && (
-            <div>
-              <h3 style={{ 
-                color: '#2E7D32', 
-                fontSize: window.innerWidth < 768 ? '18px' : '22px', 
-                marginBottom: '20px' 
-              }}>
-                📋 My Challenges - Track Your Progress
-              </h3>
-              
-              {joinedChallenges.length > 0 ? (
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: window.innerWidth < 768 ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))', 
-                  gap: '20px' 
-                }}>
-                  {challenges.filter(challenge => joinedChallenges.includes(challenge._id)).map(challenge => (
-                    <div key={challenge._id} style={{
-                      border: '2px solid #4CAF50',
-                      padding: '20px',
-                      borderRadius: '15px',
-                      backgroundColor: '#E8F5E8',
-                      transition: 'transform 0.3s, box-shadow 0.3s'
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-5px)';
-                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(76, 175, 80, 0.3)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
-                        <div style={{
-                          width: '50px',
-                          height: '50px',
-                          backgroundColor: '#4CAF50',
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontSize: '20px',
-                          marginRight: '15px'
-                        }}>
-                          ✅
-                        </div>
-                        <div>
-                          <h4 style={{ margin: '0 0 5px 0', color: '#2E7D32', fontSize: '18px' }}>
-                            {challenge.title}
-                          </h4>
-                          <div style={{ fontSize: '12px', color: '#666' }}>
-                            Status: <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>Joined</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <p style={{ margin: '0 0 15px 0', color: '#666', fontSize: '14px', lineHeight: '1.5' }}>
-                        {challenge.description}
-                      </p>
-                      
-                      <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'center',
-                        marginBottom: '15px'
-                      }}>
-                        <div style={{ fontSize: '14px', color: '#666' }}>
-                          <strong style={{ color: '#2E7D32' }}>{challenge.points}</strong> points
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#666' }}>
-                          Difficulty: <span style={{ 
-                            color: challenge.difficulty === 'Easy' ? '#4CAF50' : 
-                                   challenge.difficulty === 'Medium' ? '#FF9800' : '#F44336',
-                            fontWeight: 'bold'
-                          }}>
-                            {challenge.difficulty}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div style={{ marginBottom: '15px' }}>
-                        <label style={{
-                          backgroundColor: '#81C784',
-                          color: 'white',
-                          padding: '8px 16px',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          marginRight: '10px'
-                        }}>
-                          📸 Upload Proof
-                          <input type="file" accept="image/*" style={{ display: 'none' }} />
-                        </label>
-                        <button
-                          onClick={() => handleSubmitProof(challenge._id)}
-                          style={{
-                            backgroundColor: '#4CAF50',
-                            color: 'white',
-                            border: 'none',
-                            padding: '8px 16px',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '12px'
-                          }}
-                        >
-                          ✅ Submit Proof
-                        </button>
-                      </div>
-
-                      <div style={{
-                        backgroundColor: '#F0F8F0',
-                        padding: '10px',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                        color: '#666'
-                      }}>
-                        💡 <strong>Tip:</strong> Complete this challenge to earn {challenge.points} eco points!
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div style={{
-                  textAlign: 'center',
-                  padding: '60px 20px',
-                  backgroundColor: '#F9F9F9',
-                  borderRadius: '15px',
-                  border: '2px dashed #81C784'
-                }}>
-                  <div style={{ fontSize: '64px', marginBottom: '20px' }}>📋</div>
-                  <h3 style={{ color: '#2E7D32', marginBottom: '15px' }}>No Challenges Joined Yet</h3>
-                  <p style={{ color: '#666', marginBottom: '25px', fontSize: '16px' }}>
-                    Join some challenges from the "Available Challenges" tab to track your progress here!
-                  </p>
-                  <button
-                    onClick={() => setActiveTab('challenges')}
-                    style={{
-                      backgroundColor: '#2E7D32',
-                      color: 'white',
-                      border: 'none',
-                      padding: '12px 25px',
-                      borderRadius: '25px',
-                      cursor: 'pointer',
-                      fontSize: '16px',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    🎯 Browse Challenges
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
 
           {activeTab === 'leaderboard' && (
             <div>
@@ -1563,6 +1505,43 @@ const Dashboard = ({ user, onNavigate }) => {
           </div>
         </div>
       )}
+
+      {/* Share Success Popup */}
+      {showSharePopup && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          padding: '15px 20px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          animation: 'slideInRight 0.3s ease-out'
+        }}>
+          <span style={{ fontSize: '20px' }}>✅</span>
+          <span style={{ fontWeight: 'bold' }}>Your Achievement is Shared!</span>
+        </div>
+      )}
+
+      <style>
+        {`
+          @keyframes slideInRight {
+            from {
+              transform: translateX(100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 
-const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenges, onJoinChallenge, onUpdateJoinedChallenge }) => {
-  const [challenges, setChallenges] = useState([]);
-  const [selectedChallenge, setSelectedChallenge] = useState(null);
+const MyChallenges = ({ user, onNavigate, joinedChallenges, onUpdateJoinedChallenge }) => {
+  const [allChallenges, setAllChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedChallenge, setSelectedChallenge] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
   const [showScrollButtons, setShowScrollButtons] = useState(false);
   const [scrollPosition, setScrollPosition] = useState(0);
-  const [showJoinPopup, setShowJoinPopup] = useState(false);
   const [showProofModal, setShowProofModal] = useState(false);
   const [selectedChallengeForProof, setSelectedChallengeForProof] = useState(null);
   const [proofFiles, setProofFiles] = useState([]);
@@ -16,18 +14,8 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
   const [showProofSubmitPopup, setShowProofSubmitPopup] = useState(false);
 
   useEffect(() => {
-    loadChallenges();
+    loadMyChallenges();
   }, []);
-
-  useEffect(() => {
-    // Auto-select highlighted challenge when challenges are loaded
-    if (highlightChallengeId && challenges.length > 0) {
-      const challengeToHighlight = challenges.find(c => c._id === highlightChallengeId);
-      if (challengeToHighlight) {
-        setSelectedChallenge(challengeToHighlight);
-      }
-    }
-  }, [highlightChallengeId, challenges]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,9 +35,9 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const loadChallenges = async () => {
+  const loadMyChallenges = async () => {
     try {
-      // Mock challenges data with more variety
+      // Load all available challenges (same as AllChallenges component)
       const mockChallenges = [
         {
           _id: '1',
@@ -130,7 +118,7 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
         }
       ];
 
-      setChallenges(mockChallenges);
+      setAllChallenges(mockChallenges);
       setLoading(false);
     } catch (error) {
       console.error('Error loading challenges:', error);
@@ -138,32 +126,41 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
     }
   };
 
-  const handleJoinChallenge = (challengeId) => {
-    const challenge = challenges.find(c => c._id === challengeId);
-    const isAlreadyJoined = joinedChallenges.some(jc => jc.challengeId === challengeId);
-    
-    if (!isAlreadyJoined && challenge) {
-      const success = onJoinChallenge(challengeId, challenge);
-      if (success) {
-        // Show success popup
-        setShowJoinPopup(true);
-        setTimeout(() => setShowJoinPopup(false), 3000);
+  // Combine challenge data with joined challenge data
+  const getMyChallenges = () => {
+    return joinedChallenges.map(joinedChallenge => {
+      const challengeData = allChallenges.find(c => c._id === joinedChallenge.challengeId);
+      if (!challengeData) return null;
+
+      // Calculate status based on dates and progress
+      let status = joinedChallenge.status || 'In Progress';
+      let progress = joinedChallenge.progress || 0;
+      
+      if (joinedChallenge.proofStatus === 'approved') {
+        status = 'Completed';
+        progress = 100;
+      } else if (new Date(joinedChallenge.joinedDate) < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && progress < 100) {
+        status = 'Overdue';
       }
-    } else if (isAlreadyJoined) {
-      alert('You have already joined this challenge! Check "My Challenges" to track your progress.');
-    }
+
+      return {
+        ...challengeData,
+        ...joinedChallenge,
+        status,
+        progress,
+        dueDate: new Date(new Date(joinedChallenge.joinedDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        completedDate: joinedChallenge.proofStatus === 'approved' ? joinedChallenge.joinedDate : null
+      };
+    }).filter(Boolean);
   };
 
   const handleSubmitProof = (challengeId) => {
-    const joinedChallenge = joinedChallenges.find(jc => jc.challengeId === challengeId);
-    if (joinedChallenge) {
-      const challenge = challenges.find(c => c._id === challengeId);
+    const challenge = getMyChallenges().find(c => c._id === challengeId);
+    if (challenge) {
       setSelectedChallengeForProof(challenge);
       setShowProofModal(true);
       setProofFiles([]);
       setProofDescription('');
-    } else {
-      alert('Please join the challenge first before submitting proof.');
     }
   };
 
@@ -208,6 +205,15 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Completed': return '#4CAF50';
+      case 'In Progress': return '#2196F3';
+      case 'Overdue': return '#F44336';
+      default: return '#666';
+    }
+  };
+
   const getCategoryIcon = (category) => {
     switch (category) {
       case 'Waste Reduction': return '♻️';
@@ -219,8 +225,13 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
     }
   };
 
-  const isJoined = (challengeId) => {
-    return joinedChallenges.some(jc => jc.challengeId === challengeId);
+  const getProofStatusIcon = (status) => {
+    switch (status) {
+      case 'approved': return '✅';
+      case 'under_review': return '⏳';
+      case 'rejected': return '❌';
+      default: return '📸';
+    }
   };
 
   const scrollToTop = () => {
@@ -240,19 +251,24 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
   const isNearTop = scrollPosition < window.innerHeight / 2;
   const isNearBottom = scrollPosition > document.documentElement.scrollHeight - window.innerHeight - window.innerHeight / 2;
 
-  const filteredChallenges = challenges.filter(challenge => {
-    const matchesCategory = filterCategory === 'all' || challenge.category === filterCategory;
-    const matchesSearch = challenge.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         challenge.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
+  const myChallenges = getMyChallenges();
+  
+  const filteredChallenges = myChallenges.filter(challenge => {
+    if (filterStatus === 'all') return true;
+    return challenge.status.toLowerCase().replace(' ', '_') === filterStatus;
   });
 
-  const categories = ['all', ...new Set(challenges.map(c => c.category))];
+  const statusOptions = [
+    { value: 'all', label: 'All Challenges' },
+    { value: 'in_progress', label: 'In Progress' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'overdue', label: 'Overdue' }
+  ];
 
   if (loading) {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
-        <h2>Loading Challenges...</h2>
+        <h2>Loading Your Challenges...</h2>
       </div>
     );
   }
@@ -304,7 +320,7 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
               fontWeight: 'bold',
               textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
             }}>
-              🎯 All Challenges
+              🎯 My Challenges
             </h1>
             <p style={{ 
               margin: 0, 
@@ -312,7 +328,7 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
               fontSize: '16px',
               textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
             }}>
-              Explore all available sustainability challenges
+              Track your joined challenges and progress
             </p>
           </div>
           
@@ -336,12 +352,81 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
         </div>
       </div>
 
-      {/* Filters and Search */}
+      {/* Content */}
       <div style={{ 
         padding: '30px 20px', 
         maxWidth: '1200px', 
         margin: '0 auto' 
       }}>
+        {/* Stats Overview */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '20px',
+          marginBottom: '30px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            padding: '25px',
+            textAlign: 'center',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+            border: '2px solid #4CAF50'
+          }}>
+            <div style={{ fontSize: '32px', marginBottom: '10px' }}>🎯</div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2E7D32' }}>
+              {myChallenges.length}
+            </div>
+            <div style={{ color: '#666', fontSize: '14px' }}>Total Joined</div>
+          </div>
+          
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            padding: '25px',
+            textAlign: 'center',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+            border: '2px solid #4CAF50'
+          }}>
+            <div style={{ fontSize: '32px', marginBottom: '10px' }}>✅</div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2E7D32' }}>
+              {myChallenges.filter(c => c.status === 'Completed').length}
+            </div>
+            <div style={{ color: '#666', fontSize: '14px' }}>Completed</div>
+          </div>
+          
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            padding: '25px',
+            textAlign: 'center',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+            border: '2px solid #2196F3'
+          }}>
+            <div style={{ fontSize: '32px', marginBottom: '10px' }}>🔄</div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2E7D32' }}>
+              {myChallenges.filter(c => c.status === 'In Progress').length}
+            </div>
+            <div style={{ color: '#666', fontSize: '14px' }}>In Progress</div>
+          </div>
+          
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            padding: '25px',
+            textAlign: 'center',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+            border: '2px solid #FF9800'
+          }}>
+            <div style={{ fontSize: '32px', marginBottom: '10px' }}>💰</div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2E7D32' }}>
+              {myChallenges.reduce((total, c) => c.status === 'Completed' ? total + c.points : total, 0)}
+            </div>
+            <div style={{ color: '#666', fontSize: '14px' }}>Points Earned</div>
+          </div>
+        </div>
+
+        {/* Filter */}
         <div style={{
           backgroundColor: 'white',
           borderRadius: '15px',
@@ -357,29 +442,10 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
             alignItems: window.innerWidth < 768 ? 'stretch' : 'center',
             marginBottom: '20px' 
           }}>
-            {/* Search */}
-            <div style={{ flex: 1 }}>
-              <input
-                type="text"
-                placeholder="🔍 Search challenges..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '2px solid #81C784',
-                  borderRadius: '25px',
-                  fontSize: '16px',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-            
-            {/* Category Filter */}
             <div>
               <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
                 style={{
                   padding: '12px 16px',
                   border: '2px solid #81C784',
@@ -389,13 +455,29 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
                   minWidth: '200px'
                 }}
               >
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category === 'all' ? 'All Categories' : `${getCategoryIcon(category)} ${category}`}
+                {statusOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
             </div>
+            
+            <button
+              onClick={() => onNavigate('all-challenges')}
+              style={{
+                backgroundColor: '#2E7D32',
+                color: 'white',
+                border: 'none',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: 'bold'
+              }}
+            >
+              🔍 Browse More Challenges
+            </button>
           </div>
 
           <div style={{ 
@@ -403,11 +485,12 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
             color: '#666',
             textAlign: 'center'
           }}>
-            Showing {filteredChallenges.length} of {challenges.length} challenges
+            Showing {filteredChallenges.length} of {myChallenges.length} challenges
           </div>
         </div>
 
-        {/* Challenges Table */}
+        {/* Challenges List */}
+        {filteredChallenges.length > 0 ? (
           <div style={{
             backgroundColor: 'white',
             borderRadius: '15px',
@@ -415,242 +498,237 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
             boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
             border: '2px solid #81C784'
           }}>
-          {/* Table Header */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: window.innerWidth < 768 ? '1fr' : '2fr 1fr 1fr 1fr 1fr 150px',
-            gap: '15px',
-            padding: '20px',
-            backgroundColor: '#2E7D32',
-            color: 'white',
-            fontWeight: 'bold',
-            fontSize: '16px'
-          }}>
-            <div>Challenge</div>
-            {window.innerWidth >= 768 && (
-              <>
-                <div>Category</div>
-                <div>Difficulty</div>
-                <div>Points</div>
-                <div>Participants</div>
-                <div>Action</div>
-              </>
-            )}
-          </div>
+            {filteredChallenges.map((challenge, index) => (
+              <div key={challenge._id}>
+                <div 
+                  style={{
+                    padding: '25px',
+                    borderBottom: index < filteredChallenges.length - 1 ? '1px solid #E0E0E0' : 'none',
+                    backgroundColor: selectedChallenge?._id === challenge._id ? '#E8F5E8' : 'white',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s'
+                  }}
+                  onClick={() => setSelectedChallenge(selectedChallenge?._id === challenge._id ? null : challenge)}
+                >
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: window.innerWidth < 768 ? '1fr' : '2fr 1fr 1fr 1fr',
+                    gap: '20px',
+                    alignItems: 'center'
+                  }}>
+                    {/* Challenge Info */}
+                    <div>
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '10px', 
+                        marginBottom: '8px' 
+                      }}>
+                        <span style={{ fontSize: '20px' }}>{getCategoryIcon(challenge.category)}</span>
+                        <h3 style={{ 
+                          margin: 0, 
+                          color: '#2E7D32', 
+                          fontSize: '18px',
+                          fontWeight: 'bold'
+                        }}>
+                          {challenge.title}
+                        </h3>
+                      </div>
+                      <p style={{ 
+                        margin: '0 0 10px 0', 
+                        color: '#666', 
+                        fontSize: '14px',
+                        lineHeight: '1.4'
+                      }}>
+                        {challenge.description}
+                      </p>
+                      <div style={{ 
+                        display: 'flex', 
+                        gap: '15px', 
+                        fontSize: '12px', 
+                        color: '#666' 
+                      }}>
+                        <span>📅 Joined: {new Date(challenge.joinedDate).toLocaleDateString()}</span>
+                        <span>⏰ Due: {new Date(challenge.dueDate).toLocaleDateString()}</span>
+                      </div>
+                    </div>
 
-          {/* Table Body */}
-          {filteredChallenges.map((challenge, index) => (
-            <div key={challenge._id}>
-              <div 
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: window.innerWidth < 768 ? '1fr' : '2fr 1fr 1fr 1fr 1fr 150px',
-                  gap: '15px',
-                  padding: '20px',
-                  borderBottom: index < filteredChallenges.length - 1 ? '1px solid #E0E0E0' : 'none',
-                  backgroundColor: selectedChallenge?._id === challenge._id ? '#E8F5E8' : 
-                                 (highlightChallengeId === challenge._id ? '#FFF3E0' : 'white'),
-                  border: highlightChallengeId === challenge._id ? '2px solid #FF9800' : 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  borderRadius: highlightChallengeId === challenge._id ? '8px' : '0',
-                  margin: highlightChallengeId === challenge._id ? '5px' : '0'
-                }}
-                onClick={() => setSelectedChallenge(selectedChallenge?._id === challenge._id ? null : challenge)}
-                onMouseOver={(e) => {
-                  if (selectedChallenge?._id !== challenge._id) {
-                    if (highlightChallengeId === challenge._id) {
-                      e.currentTarget.style.backgroundColor = '#FFE0B2';
-                    } else {
-                      e.currentTarget.style.backgroundColor = '#F5F5F5';
-                    }
-                  }
-                }}
-                onMouseOut={(e) => {
-                  if (selectedChallenge?._id !== challenge._id) {
-                    if (highlightChallengeId === challenge._id) {
-                      e.currentTarget.style.backgroundColor = '#FFF3E0';
-                    } else {
-                      e.currentTarget.style.backgroundColor = 'white';
-                    }
-                  }
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 'bold', color: '#2E7D32', marginBottom: '5px' }}>
-                    {challenge.title}
+                    {window.innerWidth >= 768 && (
+                      <>
+                        {/* Status */}
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{
+                            color: getStatusColor(challenge.status),
+                            fontWeight: 'bold',
+                            fontSize: '14px',
+                            marginBottom: '5px'
+                          }}>
+                            {challenge.status}
+                          </div>
+                          <div style={{
+                            backgroundColor: '#F0F0F0',
+                            borderRadius: '10px',
+                            height: '8px',
+                            overflow: 'hidden'
+                          }}>
+                            <div style={{
+                              backgroundColor: getStatusColor(challenge.status),
+                              height: '100%',
+                              width: `${challenge.progress}%`,
+                              transition: 'width 0.3s'
+                            }}></div>
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                            {challenge.progress}%
+                          </div>
+                        </div>
+
+                        {/* Points & Difficulty */}
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ 
+                            fontSize: '18px', 
+                            fontWeight: 'bold', 
+                            color: '#2E7D32',
+                            marginBottom: '5px'
+                          }}>
+                            {challenge.points} pts
+                          </div>
+                          <div style={{
+                            color: getDifficultyColor(challenge.difficulty),
+                            fontWeight: 'bold',
+                            fontSize: '12px'
+                          }}>
+                            {challenge.difficulty}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div style={{ textAlign: 'center' }}>
+                          {challenge.status !== 'Completed' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSubmitProof(challenge._id);
+                              }}
+                              disabled={challenge.submittedProof}
+                              style={{
+                                backgroundColor: challenge.submittedProof ? '#4CAF50' : '#FF9800',
+                                color: 'white',
+                                border: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '6px',
+                                cursor: challenge.submittedProof ? 'default' : 'pointer',
+                                fontSize: '12px',
+                                fontWeight: 'bold',
+                                opacity: challenge.submittedProof ? 0.7 : 1
+                              }}
+                            >
+                              {getProofStatusIcon(challenge.proofStatus)} 
+                              {challenge.submittedProof ? ' Submitted' : ' Submit Proof'}
+                            </button>
+                          )}
+                          {challenge.status === 'Completed' && (
+                            <div style={{
+                              color: '#4CAF50',
+                              fontWeight: 'bold',
+                              fontSize: '14px'
+                            }}>
+                              ✅ Completed
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div style={{ fontSize: '14px', color: '#666', lineHeight: '1.4' }}>
-                    {challenge.description}
-                  </div>
+
+                  {/* Mobile view additional info */}
                   {window.innerWidth < 768 && (
-                    <div style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
-                      {getCategoryIcon(challenge.category)} {challenge.category} • 
-                      <span style={{ color: getDifficultyColor(challenge.difficulty) }}> {challenge.difficulty}</span> • 
-                      {challenge.points} pts • {challenge.participants} participants
+                    <div style={{ 
+                      marginTop: '15px', 
+                      display: 'grid', 
+                      gridTemplateColumns: '1fr 1fr', 
+                      gap: '10px',
+                      fontSize: '12px'
+                    }}>
+                      <div>
+                        <strong>Status:</strong> 
+                        <span style={{ color: getStatusColor(challenge.status), marginLeft: '5px' }}>
+                          {challenge.status}
+                        </span>
+                      </div>
+                      <div>
+                        <strong>Progress:</strong> {challenge.progress}%
+                      </div>
+                      <div>
+                        <strong>Points:</strong> {challenge.points}
+                      </div>
+                      <div>
+                        <strong>Difficulty:</strong> 
+                        <span style={{ color: getDifficultyColor(challenge.difficulty), marginLeft: '5px' }}>
+                          {challenge.difficulty}
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
-                
-                {window.innerWidth >= 768 && (
-                  <>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <span style={{ marginRight: '5px' }}>{getCategoryIcon(challenge.category)}</span>
-                      {challenge.category}
-                    </div>
-                    <div>
-                      <span style={{ 
-                        color: getDifficultyColor(challenge.difficulty),
-                        fontWeight: 'bold'
-                      }}>
-                        {challenge.difficulty}
-                      </span>
-                    </div>
-                    <div style={{ fontWeight: 'bold', color: '#2E7D32' }}>
-                      {challenge.points} pts
-                    </div>
-                    <div style={{ color: '#666' }}>
-                      {challenge.participants} joined
-                    </div>
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => handleJoinChallenge(challenge._id)}
-                        style={{
-                          backgroundColor: isJoined(challenge._id) ? '#4CAF50' : '#2E7D32',
-                          color: 'white',
-                          border: 'none',
-                          padding: '8px 16px',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: 'bold',
-                          width: '100%'
-                        }}
-                      >
-                        {isJoined(challenge._id) ? '✅ Joined' : '🚀 Join'}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
 
-              {/* Detailed View */}
-              {selectedChallenge?._id === challenge._id && (
-                <div style={{
-                  padding: '25px',
-                  backgroundColor: '#E8F5E8',
-                  borderTop: '2px solid #81C784'
-                }}>
-                  <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: window.innerWidth < 768 ? '1fr' : '1fr 1fr',
-                    gap: '30px' 
-                  }}>
-                    <div>
-                      <h4 style={{ color: '#2E7D32', marginBottom: '15px' }}>📋 Requirements</h4>
-                      <ul style={{ paddingLeft: '20px', color: '#666' }}>
-                        {challenge.requirements.map((req, idx) => (
-                          <li key={idx} style={{ marginBottom: '8px' }}>{req}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 style={{ color: '#2E7D32', marginBottom: '15px' }}>💡 Tips</h4>
-                      <ul style={{ paddingLeft: '20px', color: '#666' }}>
-                        {challenge.tips.map((tip, idx) => (
-                          <li key={idx} style={{ marginBottom: '8px' }}>{tip}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div style={{ 
-                    marginTop: '25px', 
-                    padding: '20px', 
-                    backgroundColor: 'white', 
-                    borderRadius: '10px',
-                    border: '1px solid #81C784'
+                {/* Expanded Details */}
+                {selectedChallenge?._id === challenge._id && (
+                  <div style={{
+                    padding: '25px',
+                    backgroundColor: '#E8F5E8',
+                    borderTop: '2px solid #81C784'
                   }}>
                     <div style={{ 
                       display: 'grid', 
-                      gridTemplateColumns: window.innerWidth < 768 ? '1fr 1fr' : 'repeat(4, 1fr)',
-                      gap: '20px',
-                      textAlign: 'center'
+                      gridTemplateColumns: window.innerWidth < 768 ? '1fr' : '1fr 1fr',
+                      gap: '30px' 
                     }}>
                       <div>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#2E7D32' }}>
-                          {challenge.duration}
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#666' }}>Duration</div>
+                        <h4 style={{ color: '#2E7D32', marginBottom: '15px' }}>📋 Requirements</h4>
+                        <ul style={{ paddingLeft: '20px', color: '#666' }}>
+                          {challenge.requirements.map((req, idx) => (
+                            <li key={idx} style={{ marginBottom: '8px' }}>{req}</li>
+                          ))}
+                        </ul>
                       </div>
-                      <div>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#2E7D32' }}>
-                          {challenge.points}
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#666' }}>Points</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#2E7D32' }}>
-                          {challenge.participants}
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#666' }}>Participants</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: getDifficultyColor(challenge.difficulty) }}>
-                          {challenge.difficulty}
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#666' }}>Difficulty</div>
-                      </div>
-                    </div>
-
-                    <div style={{ 
-                      marginTop: '20px', 
-                      display: 'flex', 
-                      gap: '15px',
-                      justifyContent: 'center',
-                      flexWrap: 'wrap'
-                    }}>
-                      <button
-                        onClick={() => handleJoinChallenge(challenge._id)}
-                        style={{
-                          backgroundColor: isJoined(challenge._id) ? '#4CAF50' : '#2E7D32',
-                          color: 'white',
-                          border: 'none',
-                          padding: '12px 25px',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          fontSize: '16px',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        {isJoined(challenge._id) ? '✅ Already Joined' : '🚀 Join Challenge'}
-                      </button>
                       
-                      <button
-                        onClick={() => handleSubmitProof(challenge._id)}
-                        style={{
-                          backgroundColor: isJoined(challenge._id) ? '#FF9800' : '#999',
-                          color: 'white',
-                          border: 'none',
-                          padding: '12px 25px',
-                          borderRadius: '8px',
-                          cursor: isJoined(challenge._id) ? 'pointer' : 'not-allowed',
-                          fontSize: '16px',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        📸 Submit Proof
-                      </button>
+                      <div>
+                        <h4 style={{ color: '#2E7D32', marginBottom: '15px' }}>💡 Tips</h4>
+                        <ul style={{ paddingLeft: '20px', color: '#666' }}>
+                          {challenge.tips.map((tip, idx) => (
+                            <li key={idx} style={{ marginBottom: '8px' }}>{tip}</li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
 
-          {filteredChallenges.length === 0 && (
+                    {challenge.status === 'Completed' && challenge.completedDate && (
+                      <div style={{
+                        marginTop: '20px',
+                        padding: '15px',
+                        backgroundColor: '#E8F5E8',
+                        borderRadius: '8px',
+                        border: '2px solid #4CAF50'
+                      }}>
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '10px',
+                          color: '#2E7D32',
+                          fontWeight: 'bold'
+                        }}>
+                          <span style={{ fontSize: '20px' }}>🎉</span>
+                          Challenge Completed on {new Date(challenge.completedDate).toLocaleDateString()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
           <div style={{
             backgroundColor: 'white',
             borderRadius: '15px',
@@ -659,9 +737,30 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
             boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
             border: '2px solid #81C784'
           }}>
-            <div style={{ fontSize: '48px', marginBottom: '20px' }}>🔍</div>
-            <h3 style={{ color: '#2E7D32', marginBottom: '10px' }}>No challenges found</h3>
-            <p style={{ color: '#666' }}>Try adjusting your search or filter criteria</p>
+            <div style={{ fontSize: '48px', marginBottom: '20px' }}>🎯</div>
+            <h3 style={{ color: '#2E7D32', marginBottom: '10px' }}>
+              {filterStatus === 'all' ? 'No challenges joined yet' : `No ${filterStatus.replace('_', ' ')} challenges`}
+            </h3>
+            <p style={{ color: '#666', marginBottom: '20px' }}>
+              {filterStatus === 'all' 
+                ? 'Start your sustainability journey by joining some challenges!' 
+                : 'Try changing the filter to see other challenges.'}
+            </p>
+            <button
+              onClick={() => onNavigate('all-challenges')}
+              style={{
+                backgroundColor: '#2E7D32',
+                color: 'white',
+                border: 'none',
+                padding: '12px 25px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: 'bold'
+              }}
+            >
+              🚀 Browse Available Challenges
+            </button>
           </div>
         )}
       </div>
@@ -693,10 +792,10 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
           }}>
             <div style={{ fontSize: window.innerWidth < 768 ? '16px' : '18px' }}>🎯</div>
             <div style={{ fontSize: window.innerWidth < 768 ? '10px' : '12px', opacity: 0.9 }}>
-              {filteredChallenges.length} of {challenges.length}
+              {filteredChallenges.length} of {myChallenges.length}
             </div>
             <div style={{ fontSize: window.innerWidth < 768 ? '10px' : '11px', opacity: 0.8 }}>
-              Available
+              Challenges
             </div>
           </div>
 
@@ -731,7 +830,7 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
                 e.target.style.backgroundColor = 'rgba(46, 125, 50, 0.9)';
                 e.target.style.boxShadow = '0 4px 15px rgba(46, 125, 50, 0.3)';
               }}
-              title={`Scroll to Top (${challenges.length} total challenges)`}
+              title={`Scroll to Top (${myChallenges.length} challenges)`}
             >
               ⬆️
             </button>
@@ -768,7 +867,7 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
                 e.target.style.backgroundColor = 'rgba(46, 125, 50, 0.9)';
                 e.target.style.boxShadow = '0 4px 15px rgba(46, 125, 50, 0.3)';
               }}
-              title={`Scroll to Bottom (${challenges.length} total challenges)`}
+              title={`Scroll to Bottom (${myChallenges.length} challenges)`}
             >
               ⬇️
             </button>
@@ -950,59 +1049,45 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
         </div>
       )}
 
-      {/* Join Success Popup */}
-      {showJoinPopup && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          padding: '15px 20px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          animation: 'slideInRight 0.3s ease-out'
-        }}>
-          <span style={{ fontSize: '20px' }}>🎯</span>
-          <span style={{ fontWeight: 'bold' }}>You joined the Challenge!</span>
-        </div>
-      )}
-
       {/* Proof Submit Success Popup */}
       {showProofSubmitPopup && (
         <div style={{
           position: 'fixed',
-          top: '20px',
-          right: '20px',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
           backgroundColor: '#4CAF50',
           color: 'white',
-          padding: '15px 20px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          zIndex: 1000,
+          padding: '20px 30px',
+          borderRadius: '12px',
+          boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
+          zIndex: 1001,
           display: 'flex',
           alignItems: 'center',
-          gap: '10px',
-          animation: 'slideInRight 0.3s ease-out'
+          gap: '15px',
+          animation: 'popupSlideIn 0.3s ease-out',
+          minWidth: '300px',
+          textAlign: 'center'
         }}>
-          <span style={{ fontSize: '20px' }}>📤</span>
-          <span style={{ fontWeight: 'bold' }}>Proof Submitted Successfully!</span>
+          <span style={{ fontSize: '24px' }}>📤</span>
+          <div>
+            <div style={{ fontWeight: 'bold', fontSize: '16px' }}>Proof Submitted Successfully!</div>
+            <div style={{ fontSize: '14px', opacity: 0.9, marginTop: '5px' }}>
+              Your submission is under review
+            </div>
+          </div>
         </div>
       )}
 
       <style>
         {`
-          @keyframes slideInRight {
+          @keyframes popupSlideIn {
             from {
-              transform: translateX(100%);
+              transform: translate(-50%, -50%) scale(0.8);
               opacity: 0;
             }
             to {
-              transform: translateX(0);
+              transform: translate(-50%, -50%) scale(1);
               opacity: 1;
             }
           }
@@ -1012,4 +1097,4 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
   );
 };
 
-export default AllChallenges;
+export default MyChallenges;
