@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const AdminDashboard = ({ user, onNavigate }) => {
+const AdminDashboard = ({ user, onNavigate, submissions: propSubmissions, onSubmissionReview, posts: propPosts, onLikePost, onUpdateUser }) => {
   const [activeTab, setActiveTab] = useState('greenhub');
   const [challenges, setChallenges] = useState([]);
   const [students, setStudents] = useState([]);
@@ -25,6 +25,9 @@ const AdminDashboard = ({ user, onNavigate }) => {
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [showProfileComponent, setShowProfileComponent] = useState(false);
   const [showApprovalPopup, setShowApprovalPopup] = useState(false);
+  const [showRejectionPopup, setShowRejectionPopup] = useState(false);
+  const [showProfileUpdatePopup, setShowProfileUpdatePopup] = useState(false);
+  const [showProfileUpdatedPopup, setShowProfileUpdatedPopup] = useState(false);
   const [adminProfile, setAdminProfile] = useState({
     name: 'Dr. Rajesh Kumar',
     email: 'admin@sece.ac.in',
@@ -43,6 +46,27 @@ const AdminDashboard = ({ user, onNavigate }) => {
       setAdminProfile(JSON.parse(savedProfile));
     }
   }, []);
+
+  useEffect(() => {
+    // Sync submissions from props
+    if (propSubmissions && propSubmissions.length > 0) {
+      setSubmissions(propSubmissions);
+    }
+  }, [propSubmissions]);
+
+  // Remove dynamic post syncing - we only want static posts
+
+  useEffect(() => {
+    // Check if admin profile needs updating
+    const hasIncompleteProfile = !user?.name || user?.name === 'Admin' || user?.name === 'Demo Admin' || 
+                                 !user?.email || !user?.department;
+    if (hasIncompleteProfile) {
+      // Show profile update popup after 2 seconds
+      setTimeout(() => {
+        setShowProfileUpdatePopup(true);
+      }, 2000);
+    }
+  }, [user]);
 
   const loadAdminData = async () => {
     try {
@@ -166,7 +190,7 @@ const AdminDashboard = ({ user, onNavigate }) => {
             name: 'Priya Sharma',
             department: 'Environmental Science'
           },
-          content: 'Successfully completed the Plastic-Free Week Challenge! 🌱 Replaced all single-use plastics with reusable alternatives. The hardest part was finding plastic-free packaging, but I discovered some amazing local stores that offer bulk items. Feeling proud to contribute to a cleaner environment! #PlasticFree #SustainableLiving',
+          content: 'Just completed the Plastic-Free Week Challenge! 🌱 Managed to eliminate 90% of single-use plastics from my daily routine. The hardest part was finding alternatives for food packaging, but I discovered some amazing local stores with bulk options!',
           timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
           likes: 24,
           likedByAdmin: false,
@@ -178,14 +202,8 @@ const AdminDashboard = ({ user, onNavigate }) => {
             {
               _id: 'c1',
               author: 'Rahul Kumar',
-              content: 'Amazing work Priya! Which stores did you find for bulk items?',
+              content: 'Amazing work! Can you share which stores you found for bulk shopping?',
               timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
-            },
-            {
-              _id: 'c2',
-              author: 'Anita Patel',
-              content: 'This is so inspiring! I want to try this challenge next.',
-              timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString()
             }
           ],
           challengeCompleted: 'Plastic-Free Week Challenge',
@@ -195,21 +213,20 @@ const AdminDashboard = ({ user, onNavigate }) => {
           _id: '2',
           author: {
             name: 'Rahul Kumar',
-            department: 'Computer Science'
+            department: 'Computer Science Engineering'
           },
-          content: 'Planted 5 saplings in the campus garden today! 🌳 Each tree can absorb up to 48 pounds of CO2 per year. It was amazing to work with fellow students and see everyone so passionate about making our campus greener. Looking forward to watching these trees grow over the years! #TreePlanting #GreenCampus',
+          content: 'Campus Tree Planting was incredible today! 🌳 Our team planted 15 saplings near the library. It feels amazing to contribute to making our campus greener. Already planning to join the next planting session!',
           timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
           likes: 31,
           likedByAdmin: true,
           proofImages: [
-            'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
-            'https://images.unsplash.com/photo-1574263867128-a3d5c1b1deaa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
           ],
           comments: [
             {
-              _id: 'c3',
-              author: 'Priya Sharma',
-              content: 'Great job Rahul! Which area of campus did you plant them in?',
+              _id: 'c2',
+              author: 'Anita Patel',
+              content: 'Great initiative! I missed this one but will definitely join the next session.',
               timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
             }
           ],
@@ -222,21 +239,14 @@ const AdminDashboard = ({ user, onNavigate }) => {
             name: 'Anita Patel',
             department: 'Business Administration'
           },
-          content: 'Week 1 of Energy Conservation Challenge complete! ⚡ Managed to reduce my dorm room energy consumption by 22% by switching to LED bulbs, unplugging devices when not in use, and using natural light during the day. Small changes can make a big difference! Sharing my energy usage tracking sheet for anyone interested. #EnergyConservation #SustainableLiving',
+          content: 'Energy Conservation Week results are in! ⚡ Reduced my dorm energy consumption by 28% by switching to LED bulbs, unplugging devices, and using natural light during the day. Small changes, big impact!',
           timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-          likes: 18,
+          likes: 19,
           likedByAdmin: false,
           proofImages: [
             'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
           ],
-          comments: [
-            {
-              _id: 'c4',
-              author: 'Vikram Singh',
-              content: 'Would love to see that tracking sheet! Can you share it?',
-              timestamp: new Date(Date.now() - 7 * 60 * 60 * 1000).toISOString()
-            }
-          ],
+          comments: [],
           challengeCompleted: 'Energy Conservation Week',
           pointsEarned: 100
         },
@@ -246,37 +256,245 @@ const AdminDashboard = ({ user, onNavigate }) => {
             name: 'Vikram Singh',
             department: 'Mechanical Engineering'
           },
-          content: 'Started using my bicycle for all campus commutes this week! 🚲 Not only am I reducing my carbon footprint, but I\'m also getting great exercise. The bike lanes on campus are well-maintained and it\'s actually faster than walking. Encouraging all my friends to join the sustainable transportation movement! #BikeToSchool #ZeroEmissions',
+          content: 'Sustainable Transportation Week was a game-changer! 🚲 Cycled to campus every day and discovered so many beautiful routes I never knew existed. Plus, I feel more energetic and saved money on fuel!',
           timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
           likes: 27,
           likedByAdmin: true,
           proofImages: [
-            'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
           ],
           comments: [
             {
-              _id: 'c5',
-              author: 'Anita Patel',
-              content: 'I should get a bike too! Any recommendations for good campus bikes?',
-              timestamp: new Date(Date.now() - 11 * 60 * 60 * 1000).toISOString()
-            },
-            {
-              _id: 'c6',
+              _id: 'c4',
               author: 'Priya Sharma',
-              content: 'This is awesome Vikram! I\'ve been thinking about biking to classes too.',
+              content: 'Inspiring! I should try cycling too. Any route recommendations?',
               timestamp: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString()
             }
           ],
           challengeCompleted: 'Sustainable Transportation Week',
           pointsEarned: 60
+        },
+        {
+          _id: '5',
+          author: {
+            name: 'Sneha Reddy',
+            department: 'Civil Engineering'
+          },
+          content: 'Water Conservation Challenge completed! 💧 Installed water-saving devices in my hostel room and reduced water usage by 35%. The low-flow showerhead and faucet aerators made a huge difference. Every drop counts!',
+          timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+          likes: 42,
+          likedByAdmin: false,
+          proofImages: [
+            'https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+            'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+          ],
+          comments: [
+            {
+              _id: 'c5',
+              author: 'Arjun Nair',
+              content: 'Great work! Where did you get the water-saving devices?',
+              timestamp: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString()
+            }
+          ],
+          challengeCompleted: 'Water Conservation Challenge',
+          pointsEarned: 80
+        },
+        {
+          _id: '6',
+          author: {
+            name: 'Arjun Nair',
+            department: 'Electronics Engineering'
+          },
+          content: 'DIY Solar Charger project is finally done! ☀️ Built a portable solar panel system that can charge my phone and laptop. Perfect for outdoor study sessions and reducing grid electricity dependency. Engineering meets sustainability!',
+          timestamp: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString(),
+          likes: 56,
+          likedByAdmin: false,
+          proofImages: [
+            'https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+            'https://images.unsplash.com/photo-1497440001374-f26997328c1b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+          ],
+          comments: [
+            {
+              _id: 'c6',
+              author: 'Vikram Singh',
+              content: 'This is incredible! Can you share the circuit diagram?',
+              timestamp: new Date(Date.now() - 1.2 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+              _id: 'c7',
+              author: 'Priya Sharma',
+              content: 'Amazing engineering skills! How long does it take to charge a laptop?',
+              timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+            }
+          ],
+          challengeCompleted: 'Renewable Energy Project',
+          pointsEarned: 120
+        },
+        {
+          _id: '7',
+          author: {
+            name: 'Kavya Iyer',
+            department: 'Biotechnology'
+          },
+          content: 'Organic Composting Workshop was enlightening! 🌿 Learned to convert kitchen waste into nutrient-rich compost. Set up a small composting system in my hostel. Nature has the best recycling system - we just need to follow it!',
+          timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+          likes: 38,
+          likedByAdmin: false,
+          proofImages: [
+            'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+          ],
+          comments: [
+            {
+              _id: 'c8',
+              author: 'Sneha Reddy',
+              content: 'I want to start composting too! Any beginner tips?',
+              timestamp: new Date(Date.now() - 1.8 * 24 * 60 * 60 * 1000).toISOString()
+            }
+          ],
+          challengeCompleted: 'Organic Composting Workshop',
+          pointsEarned: 65
+        },
+        {
+          _id: '8',
+          author: {
+            name: 'Rohan Gupta',
+            department: 'Chemical Engineering'
+          },
+          content: 'Zero Waste Lifestyle Challenge - Week 2 update! 🗂️ Managed to fit all my non-recyclable waste in a small jar. The key is refusing single-use items and choosing reusable alternatives. It\'s challenging but so rewarding!',
+          timestamp: new Date(Date.now() - 2.5 * 24 * 60 * 60 * 1000).toISOString(),
+          likes: 45,
+          likedByAdmin: false,
+          proofImages: [
+            'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+          ],
+          comments: [
+            {
+              _id: 'c9',
+              author: 'Kavya Iyer',
+              content: 'That\'s incredible! What was the hardest thing to replace?',
+              timestamp: new Date(Date.now() - 2.2 * 24 * 60 * 60 * 1000).toISOString()
+            }
+          ],
+          challengeCompleted: 'Zero Waste Lifestyle Challenge',
+          pointsEarned: 90
+        },
+        {
+          _id: '9',
+          author: {
+            name: 'Meera Krishnan',
+            department: 'Information Technology'
+          },
+          content: 'Green Tech Innovation Hackathon was amazing! 💻 Our team developed an app to track carbon footprint and suggest eco-friendly alternatives. Technology can be a powerful tool for environmental change. Proud to be part of the solution!',
+          timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          likes: 67,
+          likedByAdmin: false,
+          proofImages: [
+            'https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+            'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+          ],
+          comments: [
+            {
+              _id: 'c10',
+              author: 'Arjun Nair',
+              content: 'Awesome! Is the app available for download?',
+              timestamp: new Date(Date.now() - 2.8 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+              _id: 'c11',
+              author: 'Rohan Gupta',
+              content: 'Great use of technology for sustainability!',
+              timestamp: new Date(Date.now() - 2.5 * 24 * 60 * 60 * 1000).toISOString()
+            }
+          ],
+          challengeCompleted: 'Green Tech Innovation Hackathon',
+          pointsEarned: 150
+        },
+        {
+          _id: '10',
+          author: {
+            name: 'Aditya Sharma',
+            department: 'Electrical Engineering'
+          },
+          content: 'Campus Clean-up Drive was a huge success! 🧹 Collected over 200kg of waste and properly segregated it for recycling. Amazing to see 150+ students come together for our environment. Clean campus, clean future!',
+          timestamp: new Date(Date.now() - 3.5 * 24 * 60 * 60 * 1000).toISOString(),
+          likes: 89,
+          likedByAdmin: false,
+          proofImages: [
+            'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+          ],
+          comments: [
+            {
+              _id: 'c12',
+              author: 'Meera Krishnan',
+              content: 'Wish I could have joined! When is the next clean-up drive?',
+              timestamp: new Date(Date.now() - 3.2 * 24 * 60 * 60 * 1000).toISOString()
+            }
+          ],
+          challengeCompleted: 'Campus Clean-up Drive',
+          pointsEarned: 70
+        },
+        {
+          _id: '11',
+          author: {
+            name: 'Pooja Srinivas',
+            department: 'Textile Engineering'
+          },
+          content: 'Sustainable Fashion Workshop was eye-opening! 👗 Learned about fast fashion\'s environmental impact and created beautiful clothes from upcycled materials. Fashion can be both stylish and sustainable!',
+          timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+          likes: 52,
+          likedByAdmin: false,
+          proofImages: [
+            'https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+          ],
+          comments: [
+            {
+              _id: 'c13',
+              author: 'Kavya Iyer',
+              content: 'Love the creativity! Can you teach me some upcycling techniques?',
+              timestamp: new Date(Date.now() - 3.8 * 24 * 60 * 60 * 1000).toISOString()
+            }
+          ],
+          challengeCompleted: 'Sustainable Fashion Workshop',
+          pointsEarned: 85
+        },
+        {
+          _id: '12',
+          author: {
+            name: 'Karthik Reddy',
+            department: 'Automobile Engineering'
+          },
+          content: 'Electric Vehicle Workshop was fantastic! ⚡🚗 Got hands-on experience with EV technology and even test-drove the latest electric cars. The future of transportation is electric, and I\'m excited to be part of this revolution!',
+          timestamp: new Date(Date.now() - 4.5 * 24 * 60 * 60 * 1000).toISOString(),
+          likes: 73,
+          likedByAdmin: false,
+          proofImages: [
+            'https://images.unsplash.com/photo-1593941707882-a5bac6861d75?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+          ],
+          comments: [
+            {
+              _id: 'c14',
+              author: 'Aditya Sharma',
+              content: 'How was the driving experience compared to regular cars?',
+              timestamp: new Date(Date.now() - 4.2 * 24 * 60 * 60 * 1000).toISOString()
+            }
+          ],
+          challengeCompleted: 'Electric Vehicle Workshop',
+          pointsEarned: 95
         }
       ];
 
       setChallenges(mockChallenges);
       setStudents(mockStudents);
-      setSubmissions(mockSubmissions);
-      setAnalytics(mockAnalytics);
+      
+      // Only set mock submissions if no real submissions are available
+      if (!propSubmissions || propSubmissions.length === 0) {
+        setSubmissions(mockSubmissions);
+      }
+      
+      // Always set static posts only - ignore any dynamic posts
       setPosts(mockPosts);
+      
+      setAnalytics(mockAnalytics);
       setLoading(false);
     } catch (error) {
       console.error('Error loading admin data:', error);
@@ -328,37 +546,91 @@ const AdminDashboard = ({ user, onNavigate }) => {
     }, 3000);
   };
 
-  const handleSubmissionReview = (submissionId, action) => {
-    setSubmissions(prev => 
-      prev.map(submission => 
-        submission._id === submissionId 
-          ? { ...submission, status: action === 'approve' ? 'Approved' : 'Rejected' }
-          : submission
-      )
-    );
-    
-    if (action === 'approve') {
-      // Update student points (in real app, this would be handled by backend)
-      const submission = submissions.find(s => s._id === submissionId);
-      const challenge = challenges.find(c => c._id === submission.challengeId);
+  const handleSubmissionReview = async (submissionId, action) => {
+    try {
+      // Call backend API for submission review
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://10.11.144.88:5000/api/submissions/${submissionId}/review`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          action: action,
+          admin_comment: action === 'approve' ? 'Submission approved by admin' : 'Submission rejected by admin'
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Use global submission review handler if available
+        if (onSubmissionReview) {
+          onSubmissionReview(submissionId, action);
+        } else {
+          // Fallback to local state management
+          setSubmissions(prev => 
+            prev.map(submission => 
+              submission._id === submissionId 
+                ? { ...submission, status: action === 'approve' ? 'Approved' : 'Rejected' }
+                : submission
+            )
+          );
+          
+          if (action === 'approve') {
+            // Update student points (in real app, this would be handled by backend)
+            const submission = submissions.find(s => s._id === submissionId);
+            const challenge = challenges.find(c => c._id === submission.challengeId);
+            
+            setStudents(prev => 
+              prev.map(student => 
+                student._id === submission.studentId 
+                  ? { 
+                      ...student, 
+                      eco_points: student.eco_points + (challenge?.points || 50),
+                      challenges_completed: student.challenges_completed + 1
+                    }
+                  : student
+              )
+            );
+          }
+        }
+        
+        // Show appropriate popup
+        if (action === 'approve') {
+          setShowApprovalPopup(true);
+          setTimeout(() => setShowApprovalPopup(false), 3000);
+        } else {
+          setShowRejectionPopup(true);
+          setTimeout(() => setShowRejectionPopup(false), 3000);
+        }
+      } else {
+        throw new Error('Failed to review submission');
+      }
+    } catch (error) {
+      console.error('Error reviewing submission:', error);
+      // Fallback to local state management on error
+      if (onSubmissionReview) {
+        onSubmissionReview(submissionId, action);
+      } else {
+        setSubmissions(prev => 
+          prev.map(submission => 
+            submission._id === submissionId 
+              ? { ...submission, status: action === 'approve' ? 'Approved' : 'Rejected' }
+              : submission
+          )
+        );
+      }
       
-      setStudents(prev => 
-        prev.map(student => 
-          student._id === submission.studentId 
-            ? { 
-                ...student, 
-                eco_points: student.eco_points + challenge.points,
-                challenges_completed: student.challenges_completed + 1
-              }
-            : student
-        )
-      );
-      
-      // Show approval popup
-      setShowApprovalPopup(true);
-      setTimeout(() => setShowApprovalPopup(false), 3000);
-    } else {
-      alert('Submission rejected successfully!');
+      // Show appropriate popup even on error
+      if (action === 'approve') {
+        setShowApprovalPopup(true);
+        setTimeout(() => setShowApprovalPopup(false), 3000);
+      } else {
+        setShowRejectionPopup(true);
+        setTimeout(() => setShowRejectionPopup(false), 3000);
+      }
     }
   };
 
@@ -405,17 +677,39 @@ const AdminDashboard = ({ user, onNavigate }) => {
   };
 
   const handleLikePost = (postId) => {
-    setPosts(prev => 
-      prev.map(post => 
-        post._id === postId 
-          ? { 
-              ...post, 
-              likes: post.likedByAdmin ? post.likes - 1 : post.likes + 1,
-              likedByAdmin: !post.likedByAdmin
-            }
-          : post
-      )
-    );
+    // Use global like handler if available
+    if (onLikePost) {
+      onLikePost(postId);
+    } else {
+      // Fallback to local state management
+      setPosts(prev => 
+        prev.map(post => 
+          post._id === postId 
+            ? { 
+                ...post, 
+                likes: post.likedByAdmin ? post.likes - 1 : post.likes + 1,
+                likedByAdmin: !post.likedByAdmin
+              }
+            : post
+        )
+      );
+    }
+  };
+
+  const handleUpdateAdminProfile = () => {
+    if (onUpdateUser) {
+      onUpdateUser(adminProfile);
+    }
+    
+    // Update localStorage
+    localStorage.setItem('adminProfile', JSON.stringify(adminProfile));
+    
+    setShowProfileEdit(false);
+    setShowProfileComponent(false);
+    
+    // Show profile updated popup
+    setShowProfileUpdatedPopup(true);
+    setTimeout(() => setShowProfileUpdatedPopup(false), 3000);
   };
 
   const handleAddComment = (postId) => {
@@ -424,7 +718,7 @@ const AdminDashboard = ({ user, onNavigate }) => {
 
     const newCommentObj = {
       _id: `admin_${Date.now()}`,
-      author: user?.name || 'Admin',
+      author: user?.name || adminProfile?.name || 'Admin',
       content: commentText.trim(),
       timestamp: new Date().toISOString(),
       isAdmin: true
@@ -819,14 +1113,14 @@ const AdminDashboard = ({ user, onNavigate }) => {
                   fontWeight: 'bold',
                   fontSize: '16px'
                 }}>
-                  {adminProfile.name?.charAt(0) || 'A'}
+                  A
                 </div>
                 <div style={{ textAlign: 'left' }}>
                   <div style={{ fontWeight: 'bold', fontSize: '14px' }}>
-                    {adminProfile.name}
+                    Admin
                   </div>
                   <div style={{ fontSize: '12px', opacity: 0.8 }}>
-                    {adminProfile.designation}
+                    {user?.designation || adminProfile.designation}
                   </div>
                 </div>
                 <div style={{ fontSize: '12px' }}>▼</div>
@@ -2299,6 +2593,99 @@ const AdminDashboard = ({ user, onNavigate }) => {
             <div style={{ fontSize: '14px', opacity: 0.9, marginTop: '5px' }}>
               Student points have been updated
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Submission Rejection Popup - Horizontal */}
+      {showRejectionPopup && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: '#F44336',
+          color: 'white',
+          padding: '20px 30px',
+          borderRadius: '12px',
+          boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
+          zIndex: 1001,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '15px',
+          animation: 'approvalSlideIn 0.3s ease-out',
+          minWidth: '320px',
+          textAlign: 'center'
+        }}>
+          <span style={{ fontSize: '24px' }}>❌</span>
+          <div>
+            <div style={{ fontWeight: 'bold', fontSize: '16px' }}>Submission Rejected!</div>
+            <div style={{ fontSize: '14px', opacity: 0.9, marginTop: '5px' }}>
+              Student has been notified
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Update Popup */}
+      {showProfileUpdatePopup && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: '#FF9800',
+          color: 'white',
+          padding: '20px 30px',
+          borderRadius: '12px',
+          boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
+          zIndex: 1001,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '15px',
+          animation: 'approvalSlideIn 0.3s ease-out',
+          minWidth: '350px',
+          textAlign: 'center',
+          cursor: 'pointer'
+        }}
+        onClick={() => {
+          setShowProfileEdit(true);
+          setShowProfileUpdatePopup(false);
+        }}
+        >
+          <span style={{ fontSize: '24px' }}>👤</span>
+          <div>
+            <div style={{ fontWeight: 'bold', fontSize: '16px' }}>Update Your Details in Profile!</div>
+            <div style={{ fontSize: '14px', opacity: 0.9, marginTop: '5px' }}>
+              Click here to complete your admin profile
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Updated Popup - Horizontal */}
+      {showProfileUpdatedPopup && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          padding: '20px 40px',
+          borderRadius: '12px',
+          boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
+          zIndex: 1001,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '15px',
+          animation: 'approvalSlideIn 0.3s ease-out',
+          minWidth: '320px',
+          textAlign: 'center'
+        }}>
+          <span style={{ fontSize: '24px' }}>✅</span>
+          <div>
+            <div style={{ fontWeight: 'bold', fontSize: '16px' }}>Your Profile is Updated!</div>
           </div>
         </div>
       )}

@@ -51,6 +51,7 @@ def init_posts_routes(app, mongo):
             return None
     
     @posts_bp.route('/', methods=['GET'])
+    @posts_bp.route('/feed', methods=['GET'])
     def get_all_posts():
         """Get all posts for feed"""
         try:

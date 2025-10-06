@@ -1,28 +1,349 @@
 import { useState, useEffect } from 'react';
 
-const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpdateJoinedChallenge }) => {
+const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpdateJoinedChallenge, onUpdateUser, onCreatePost, posts: propPosts, onLikePost }) => {
   const [challenges, setChallenges] = useState([]);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState('challenges');
-  const [newPost, setNewPost] = useState('');
-  const [postImage, setPostImage] = useState(null);
   const [showRewardsPopup, setShowRewardsPopup] = useState(false);
   const [redeemPoints, setRedeemPoints] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const [showSharePopup, setShowSharePopup] = useState(false);
+  const [showProfileUpdatePopup, setShowProfileUpdatePopup] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [newComment, setNewComment] = useState({});
+  const [profileForm, setProfileForm] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    department: user?.department || '',
+    year: user?.year || '',
+    phone: user?.phone || '',
+    bio: user?.bio || ''
+  });
 
   useEffect(() => {
     loadData();
+    
+    // Show profile update popup if user details are incomplete
+    const hasIncompleteProfile = !user?.name || !user?.department || !user?.email;
+    if (hasIncompleteProfile) {
+      setTimeout(() => {
+        setShowProfileUpdatePopup(true);
+        setTimeout(() => setShowProfileUpdatePopup(false), 5000);
+      }, 2000);
+    }
   }, []);
+
+  // Remove dynamic post syncing - we only want static posts
 
   const loadData = async () => {
     try {
       const token = localStorage.getItem('token');
       const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+      // Always load static social media posts from other students only
+      const staticPosts = [
+          {
+            _id: 'static_1',
+            author: {
+              name: 'Priya Sharma',
+              department: 'Environmental Science'
+            },
+            content: 'Just completed the Plastic-Free Week Challenge! 🌱 Managed to eliminate 90% of single-use plastics from my daily routine. The hardest part was finding alternatives for food packaging, but I discovered some amazing local stores with bulk options!',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            likes: 24,
+            likedByUser: false,
+            challengeCompleted: 'Plastic-Free Week Challenge',
+            pointsEarned: 50,
+            proofImages: [
+              'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+              'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            ],
+            comments: [
+              {
+                _id: 'comment_1',
+                author: 'Rahul Kumar',
+                content: 'Amazing work! Can you share which stores you found for bulk shopping?',
+                timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
+              }
+            ]
+          },
+          {
+            _id: 'static_2',
+            author: {
+              name: 'Rahul Kumar',
+              department: 'Computer Science Engineering'
+            },
+            content: 'Campus Tree Planting was incredible today! 🌳 Our team planted 15 saplings near the library. It feels amazing to contribute to making our campus greener. Already planning to join the next planting session!',
+            timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+            likes: 31,
+            likedByUser: false,
+            challengeCompleted: 'Campus Tree Planting',
+            pointsEarned: 75,
+            proofImages: [
+              'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            ],
+            comments: [
+              {
+                _id: 'comment_2',
+                author: 'Anita Patel',
+                content: 'Great initiative! I missed this one but will definitely join the next session.',
+                timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+              }
+            ]
+          },
+          {
+            _id: 'static_3',
+            author: {
+              name: 'Anita Patel',
+              department: 'Business Administration'
+            },
+            content: 'Energy Conservation Week results are in! ⚡ Reduced my dorm energy consumption by 28% by switching to LED bulbs, unplugging devices, and using natural light during the day. Small changes, big impact!',
+            timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+            likes: 19,
+            likedByUser: false,
+            challengeCompleted: 'Energy Conservation Week',
+            pointsEarned: 100,
+            proofImages: [
+              'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            ],
+            comments: []
+          },
+          {
+            _id: 'static_4',
+            author: {
+              name: 'Vikram Singh',
+              department: 'Mechanical Engineering'
+            },
+            content: 'Sustainable Transportation Week was a game-changer! 🚲 Cycled to campus every day and discovered so many beautiful routes I never knew existed. Plus, I feel more energetic and saved money on fuel!',
+            timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+            likes: 27,
+            likedByUser: false,
+            challengeCompleted: 'Sustainable Transportation Week',
+            pointsEarned: 60,
+            proofImages: [
+              'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            ],
+            comments: [
+              {
+                _id: 'comment_4',
+                author: 'Priya Sharma',
+                content: 'Inspiring! I should try cycling too. Any route recommendations?',
+                timestamp: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString()
+              }
+            ]
+          },
+          {
+            _id: 'static_5',
+            author: {
+              name: 'Sneha Reddy',
+              department: 'Civil Engineering'
+            },
+            content: 'Water Conservation Challenge completed! 💧 Installed water-saving devices in my hostel room and reduced water usage by 35%. The low-flow showerhead and faucet aerators made a huge difference. Every drop counts!',
+            timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+            likes: 42,
+            likedByUser: false,
+            challengeCompleted: 'Water Conservation Challenge',
+            pointsEarned: 80,
+            proofImages: [
+              'https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+              'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            ],
+            comments: [
+              {
+                _id: 'comment_5',
+                author: 'Arjun Nair',
+                content: 'Great work! Where did you get the water-saving devices?',
+                timestamp: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString()
+              }
+            ]
+          },
+          {
+            _id: 'static_6',
+            author: {
+              name: 'Arjun Nair',
+              department: 'Electronics Engineering'
+            },
+            content: 'DIY Solar Charger project is finally done! ☀️ Built a portable solar panel system that can charge my phone and laptop. Perfect for outdoor study sessions and reducing grid electricity dependency. Engineering meets sustainability!',
+            timestamp: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString(),
+            likes: 56,
+            likedByUser: false,
+            challengeCompleted: 'Renewable Energy Project',
+            pointsEarned: 120,
+            proofImages: [
+              'https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+              'https://images.unsplash.com/photo-1497440001374-f26997328c1b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            ],
+            comments: [
+              {
+                _id: 'comment_6',
+                author: 'Vikram Singh',
+                content: 'This is incredible! Can you share the circuit diagram?',
+                timestamp: new Date(Date.now() - 1.2 * 24 * 60 * 60 * 1000).toISOString()
+              },
+              {
+                _id: 'comment_7',
+                author: 'Priya Sharma',
+                content: 'Amazing engineering skills! How long does it take to charge a laptop?',
+                timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+              }
+            ]
+          },
+          {
+            _id: 'static_7',
+            author: {
+              name: 'Kavya Iyer',
+              department: 'Biotechnology'
+            },
+            content: 'Organic Composting Workshop was enlightening! 🌿 Learned to convert kitchen waste into nutrient-rich compost. Set up a small composting system in my hostel. Nature has the best recycling system - we just need to follow it!',
+            timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            likes: 38,
+            likedByUser: false,
+            challengeCompleted: 'Organic Composting Workshop',
+            pointsEarned: 65,
+            proofImages: [
+              'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            ],
+            comments: [
+              {
+                _id: 'comment_8',
+                author: 'Sneha Reddy',
+                content: 'I want to start composting too! Any beginner tips?',
+                timestamp: new Date(Date.now() - 1.8 * 24 * 60 * 60 * 1000).toISOString()
+              }
+            ]
+          },
+          {
+            _id: 'static_8',
+            author: {
+              name: 'Rohan Gupta',
+              department: 'Chemical Engineering'
+            },
+            content: 'Zero Waste Lifestyle Challenge - Week 2 update! 🗂️ Managed to fit all my non-recyclable waste in a small jar. The key is refusing single-use items and choosing reusable alternatives. It\'s challenging but so rewarding!',
+            timestamp: new Date(Date.now() - 2.5 * 24 * 60 * 60 * 1000).toISOString(),
+            likes: 45,
+            likedByUser: false,
+            challengeCompleted: 'Zero Waste Lifestyle Challenge',
+            pointsEarned: 90,
+            proofImages: [
+              'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            ],
+            comments: [
+              {
+                _id: 'comment_9',
+                author: 'Kavya Iyer',
+                content: 'That\'s incredible! What was the hardest thing to replace?',
+                timestamp: new Date(Date.now() - 2.2 * 24 * 60 * 60 * 1000).toISOString()
+              }
+            ]
+          },
+          {
+            _id: 'static_9',
+            author: {
+              name: 'Meera Krishnan',
+              department: 'Information Technology'
+            },
+            content: 'Green Tech Innovation Hackathon was amazing! 💻 Our team developed an app to track carbon footprint and suggest eco-friendly alternatives. Technology can be a powerful tool for environmental change. Proud to be part of the solution!',
+            timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+            likes: 67,
+            likedByUser: false,
+            challengeCompleted: 'Green Tech Innovation Hackathon',
+            pointsEarned: 150,
+            proofImages: [
+              'https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+              'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            ],
+            comments: [
+              {
+                _id: 'comment_10',
+                author: 'Arjun Nair',
+                content: 'Awesome! Is the app available for download?',
+                timestamp: new Date(Date.now() - 2.8 * 24 * 60 * 60 * 1000).toISOString()
+              },
+              {
+                _id: 'comment_11',
+                author: 'Rohan Gupta',
+                content: 'Great use of technology for sustainability!',
+                timestamp: new Date(Date.now() - 2.5 * 24 * 60 * 60 * 1000).toISOString()
+              }
+            ]
+          },
+          {
+            _id: 'static_10',
+            author: {
+              name: 'Aditya Sharma',
+              department: 'Electrical Engineering'
+            },
+            content: 'Campus Clean-up Drive was a huge success! 🧹 Collected over 200kg of waste and properly segregated it for recycling. Amazing to see 150+ students come together for our environment. Clean campus, clean future!',
+            timestamp: new Date(Date.now() - 3.5 * 24 * 60 * 60 * 1000).toISOString(),
+            likes: 89,
+            likedByUser: false,
+            challengeCompleted: 'Campus Clean-up Drive',
+            pointsEarned: 70,
+            proofImages: [
+              'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            ],
+            comments: [
+              {
+                _id: 'comment_12',
+                author: 'Meera Krishnan',
+                content: 'Wish I could have joined! When is the next clean-up drive?',
+                timestamp: new Date(Date.now() - 3.2 * 24 * 60 * 60 * 1000).toISOString()
+              }
+            ]
+          },
+          {
+            _id: 'static_11',
+            author: {
+              name: 'Pooja Srinivas',
+              department: 'Textile Engineering'
+            },
+            content: 'Sustainable Fashion Workshop was eye-opening! 👗 Learned about fast fashion\'s environmental impact and created beautiful clothes from upcycled materials. Fashion can be both stylish and sustainable!',
+            timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+            likes: 52,
+            likedByUser: false,
+            challengeCompleted: 'Sustainable Fashion Workshop',
+            pointsEarned: 85,
+            proofImages: [
+              'https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            ],
+            comments: [
+              {
+                _id: 'comment_13',
+                author: 'Kavya Iyer',
+                content: 'Love the creativity! Can you teach me some upcycling techniques?',
+                timestamp: new Date(Date.now() - 3.8 * 24 * 60 * 60 * 1000).toISOString()
+              }
+            ]
+          },
+          {
+            _id: 'static_12',
+            author: {
+              name: 'Karthik Reddy',
+              department: 'Automobile Engineering'
+            },
+            content: 'Electric Vehicle Workshop was fantastic! ⚡🚗 Got hands-on experience with EV technology and even test-drove the latest electric cars. The future of transportation is electric, and I\'m excited to be part of this revolution!',
+            timestamp: new Date(Date.now() - 4.5 * 24 * 60 * 60 * 1000).toISOString(),
+            likes: 73,
+            likedByUser: false,
+            challengeCompleted: 'Electric Vehicle Workshop',
+            pointsEarned: 95,
+            proofImages: [
+              'https://images.unsplash.com/photo-1593941707882-a5bac6861d75?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80'
+            ],
+            comments: [
+              {
+                _id: 'comment_14',
+                author: 'Aditya Sharma',
+                content: 'How was the driving experience compared to regular cars?',
+                timestamp: new Date(Date.now() - 4.2 * 24 * 60 * 60 * 1000).toISOString()
+              }
+            ]
+          }
+        ];
+        setPosts(staticPosts);
 
       // Load challenges (using same mock data as AllChallenges)
       const mockChallenges = [
@@ -129,13 +450,8 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
         }
       ];
       
-      try {
-        const postsRes = await fetch('http://localhost:5000/api/feed', { headers });
-        const postsData = await postsRes.json();
-        setPosts([...mockPosts, ...(postsData.posts || [])]);
-      } catch {
-        setPosts(mockPosts);
-      }
+      // Use only static posts - no API calls
+      setPosts(staticPosts);
 
       // Load notifications (mock data for released challenges)
       const mockNotifications = [
@@ -192,28 +508,20 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
     window.location.reload();
   };
 
-  const handleSharePost = () => {
-    if (newPost.trim()) {
-      const newPostData = {
-        _id: Date.now().toString(),
-        user: user?.name || 'Anonymous',
-        content: newPost,
-        timestamp: new Date().toISOString(),
-        likes: 0,
-        comments: [],
-        shares: 0,
-        image: postImage ? URL.createObjectURL(postImage) : null
-      };
-      
-      setPosts(prev => [newPostData, ...prev]);
-      setNewPost('');
-      setPostImage(null);
-      
-      // Show success popup
-      setShowSharePopup(true);
-      setTimeout(() => setShowSharePopup(false), 3000);
+
+  const [showProfileUpdatedPopup, setShowProfileUpdatedPopup] = useState(false);
+
+  const handleUpdateProfile = () => {
+    if (onUpdateUser) {
+      onUpdateUser(profileForm);
     }
+    setShowProfileModal(false);
+    
+    // Show horizontal profile updated popup
+    setShowProfileUpdatedPopup(true);
+    setTimeout(() => setShowProfileUpdatedPopup(false), 3000);
   };
+
 
   const handleJoinChallenge = (challengeId) => {
     const challenge = challenges.find(c => c._id === challengeId);
@@ -270,6 +578,56 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
     setShowNotifications(false);
     // Navigate to all challenges page and highlight the selected challenge
     onNavigate('all-challenges', challengeId);
+  };
+
+  const handleLikePostLocal = (postId) => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post._id === postId 
+          ? { 
+              ...post, 
+              likedByAdmin: !post.likedByAdmin,
+              likes: post.likedByAdmin ? post.likes - 1 : post.likes + 1
+            }
+          : post
+      )
+    );
+  };
+
+  const handleCommentChange = (postId, value) => {
+    setNewComment(prev => ({
+      ...prev,
+      [postId]: value
+    }));
+  };
+
+  const handleAddComment = (postId) => {
+    const commentText = newComment[postId];
+    if (!commentText || !commentText.trim()) return;
+
+    const newCommentObj = {
+      _id: Date.now().toString(),
+      author: user?.name || 'Student',
+      content: commentText.trim(),
+      timestamp: new Date().toISOString(),
+      isAdmin: false
+    };
+
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post._id === postId 
+          ? { 
+              ...post, 
+              comments: [...post.comments, newCommentObj]
+            }
+          : post
+      )
+    );
+
+    setNewComment(prev => ({
+      ...prev,
+      [postId]: ''
+    }));
   };
 
   const formatNotificationDate = (date) => {
@@ -617,22 +975,26 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
 
             {/* Profile Dropdown */}
             <div style={{ position: 'relative' }}>
-              <button 
+              <div
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                 style={{
-                  backgroundColor: 'rgba(255,255,255,0.25)',
+                  backgroundColor: 'rgba(46, 125, 50, 0.8)',
                   backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '50%',
                   width: '45px',
                   height: '45px',
                   cursor: 'pointer',
-                  fontSize: '20px',
-                  color: 'white'
+                  fontSize: '16px',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 'bold'
                 }}
               >
-                👤
-              </button>
+                {(user?.name || 'U').charAt(0).toUpperCase()}
+              </div>
 
               {/* Dropdown Menu */}
               {showProfileDropdown && (
@@ -648,7 +1010,7 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
                 }}>
                   <button
                     onClick={() => {
-                      onNavigate('profile');
+                      setActiveTab('details');
                       setShowProfileDropdown(false);
                     }}
                     style={{
@@ -755,98 +1117,28 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
             fontSize: window.innerWidth < 768 ? '20px' : '24px', 
             marginBottom: '20px' 
           }}>
-            🌱 GreenHUB - Share Your Achievements
+            🌱 GreenHUB - Student Achievements
           </h2>
           
-          {/* Post Creation */}
-          <div style={{
-            backgroundColor: '#F5F5F5',
-            padding: '20px',
-            borderRadius: '10px',
-            marginBottom: '20px'
-          }}>
-            <textarea
-              value={newPost}
-              onChange={(e) => setNewPost(e.target.value)}
-              placeholder="Share your sustainability achievements, eco-friendly activities, or green tips..."
-              style={{
-                width: '100%',
-                minHeight: '80px',
-                padding: '15px',
-                border: '2px solid #81C784',
-                borderRadius: '10px',
-                fontSize: '16px',
-                resize: 'vertical',
-                boxSizing: 'border-box'
-              }}
-            />
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: window.innerWidth < 768 ? 'column' : 'row',
-              justifyContent: 'space-between', 
-              alignItems: window.innerWidth < 768 ? 'stretch' : 'center', 
-              gap: window.innerWidth < 768 ? '15px' : '0',
-              marginTop: '15px' 
-            }}>
-              <div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setPostImage(e.target.files[0])}
-                  style={{ display: 'none' }}
-                  id="post-image"
-                />
-                <label
-                  htmlFor="post-image"
-                  style={{
-                    backgroundColor: '#81C784',
-                    color: 'white',
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: window.innerWidth < 768 ? '12px' : '14px',
-                    marginRight: '10px',
-                    display: 'inline-block'
-                  }}
-                >
-                  📷 Add Photo
-                </label>
-                {postImage && <span style={{ color: '#2E7D32', fontSize: '14px' }}>✓ Image selected</span>}
-              </div>
-              <button
-                onClick={handleSharePost}
-                style={{
-                  backgroundColor: '#2E7D32',
-                  color: 'white',
-                  border: 'none',
-                  padding: window.innerWidth < 768 ? '12px 20px' : '12px 25px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: window.innerWidth < 768 ? '14px' : '16px',
-                  fontWeight: 'bold',
-                  width: window.innerWidth < 768 ? '100%' : 'auto'
-                }}
-              >
-                🌿 Share Post
-              </button>
-            </div>
+          <div style={{ marginBottom: '20px' }}>
+            <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
+              View and interact with student sustainability achievements and posts
+            </p>
           </div>
 
           {/* Posts Feed */}
-          <div style={{
-            maxHeight: '600px',
-            overflowY: 'auto',
-            paddingRight: '10px'
-          }}>
+          <div>
             {posts.length > 0 ? (
               posts.map(post => (
                 <div key={post._id} style={{
-                  backgroundColor: '#F9F9F9',
-                  padding: '20px',
+                  backgroundColor: 'white',
+                  padding: window.innerWidth < 768 ? '15px' : '20px',
                   borderRadius: '10px',
-                  marginBottom: '15px',
-                  border: '1px solid #E0E0E0'
+                  marginBottom: window.innerWidth < 768 ? '15px' : '20px',
+                  border: '1px solid #E0E0E0',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                 }}>
+                  {/* Post Header */}
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                     <div style={{
                       width: '50px',
@@ -861,44 +1153,177 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
                       fontSize: '18px',
                       marginRight: '15px'
                     }}>
-                      {post.student?.name?.charAt(0) || 'U'}
+                      {post.author.name.charAt(0)}
                     </div>
-                    <div>
-                      <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#2E7D32' }}>
-                        {post.student?.name || 'User'}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 'bold', color: '#2E7D32', fontSize: '16px' }}>
+                        {post.author.name}
                       </div>
                       <div style={{ fontSize: '12px', color: '#666' }}>
-                        {new Date(post.timestamp).toLocaleDateString()} • {post.student?.department}
+                        {post.author.department} • {new Date(post.timestamp).toLocaleString()}
                       </div>
+                      {post.challengeCompleted && (
+                        <div style={{
+                          display: 'inline-block',
+                          backgroundColor: '#E8F5E8',
+                          color: '#2E7D32',
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          fontSize: '10px',
+                          fontWeight: 'bold',
+                          marginTop: '5px'
+                        }}>
+                          ✅ {post.challengeCompleted} (+{post.pointsEarned} pts)
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <p style={{ margin: '0 0 15px 0', fontSize: '16px', lineHeight: '1.5' }}>{post.content}</p>
-                  
-                  {/* Display image if available */}
-                  {post.image && (
-                    <div style={{ marginBottom: '15px' }}>
-                      <img 
-                        src={post.image} 
-                        alt="Post attachment" 
-                        style={{
-                          maxWidth: '100%',
-                          height: 'auto',
-                          borderRadius: '8px',
-                          border: '1px solid #E0E0E0'
-                        }}
-                      />
+
+                  {/* Post Content */}
+                  <div style={{
+                    color: '#333',
+                    fontSize: '14px',
+                    lineHeight: '1.5',
+                    marginBottom: '15px'
+                  }}>
+                    {post.content}
+                  </div>
+
+                  {/* Photo Proofs */}
+                  {post.proofImages && post.proofImages.length > 0 && (
+                    <div style={{
+                      display: 'flex',
+                      gap: '10px',
+                      marginBottom: '15px',
+                      flexWrap: 'wrap'
+                    }}>
+                      {post.proofImages.map((image, index) => (
+                        <div key={index} style={{
+                          width: post.proofImages.length === 1 ? '100%' : window.innerWidth < 768 ? '100%' : '48%',
+                          maxWidth: '300px'
+                        }}>
+                          <img
+                            src={image}
+                            alt={`Achievement proof ${index + 1}`}
+                            style={{
+                              width: '100%',
+                              height: '200px',
+                              objectFit: 'cover',
+                              borderRadius: '10px',
+                              border: '2px solid #E0E0E0',
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => window.open(image, '_blank')}
+                            onError={(e) => {
+                              e.target.src = 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80';
+                              e.target.style.opacity = '0.7';
+                              e.target.onerror = null; // Prevent infinite loop
+                            }}
+                            onLoad={(e) => {
+                              e.target.style.opacity = '1';
+                            }}
+                          />
+                        </div>
+                      ))}
                     </div>
                   )}
-                  
-                  <div style={{ display: 'flex', gap: '20px', fontSize: '14px', color: '#666' }}>
-                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4CAF50' }}>
-                      👍 {post.likes || 0} likes
+
+                  {/* Post Actions */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '20px',
+                    paddingTop: '15px',
+                    borderTop: '1px solid #E0E0E0',
+                    marginBottom: '15px'
+                  }}>
+                    <button
+                      onClick={() => handleLikePostLocal(post._id)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: post.likedByAdmin ? '#FF6B35' : '#666',
+                        fontSize: '14px',
+                        fontWeight: post.likedByAdmin ? 'bold' : 'normal'
+                      }}
+                    >
+                      {post.likedByAdmin ? '❤️' : '🤍'} {post.likes}
                     </button>
-                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2196F3' }}>
-                      💬 {post.comments?.length || 0} comments
-                    </button>
-                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#FF9800' }}>
-                      🔄 {post.shares || 0} shares
+                    <div style={{ color: '#666', fontSize: '14px' }}>
+                      💬 {post.comments.length} comments
+                    </div>
+                  </div>
+
+                  {/* Comments Section */}
+                  <div style={{ marginBottom: '15px' }}>
+                    {post.comments.map(comment => (
+                      <div key={comment._id} style={{
+                        backgroundColor: comment.isAdmin ? '#FFF3E0' : 'white',
+                        padding: '10px',
+                        borderRadius: '8px',
+                        marginBottom: '8px',
+                        border: comment.isAdmin ? '1px solid #FFB74D' : '1px solid #E0E0E0'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div>
+                            <div style={{ 
+                              fontWeight: 'bold', 
+                              color: comment.isAdmin ? '#FF6B35' : '#2E7D32',
+                              fontSize: '13px'
+                            }}>
+                              {comment.author} {comment.isAdmin && '(Admin)'}
+                            </div>
+                            <div style={{ color: '#333', fontSize: '13px', marginTop: '2px' }}>
+                              {comment.content}
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#666' }}>
+                            {new Date(comment.timestamp).toLocaleTimeString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add Comment */}
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <input
+                      type="text"
+                      value={newComment[post._id] || ''}
+                      onChange={(e) => handleCommentChange(post._id, e.target.value)}
+                      placeholder="Add a comment..."
+                      style={{
+                        flex: 1,
+                        padding: '8px 12px',
+                        border: '2px solid #81C784',
+                        borderRadius: '20px',
+                        fontSize: '13px',
+                        outline: 'none'
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddComment(post._id);
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => handleAddComment(post._id)}
+                      style={{
+                        backgroundColor: '#2E7D32',
+                        color: 'white',
+                        border: 'none',
+                        padding: '8px 15px',
+                        borderRadius: '20px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Post
                     </button>
                   </div>
                 </div>
@@ -906,7 +1331,7 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
             ) : (
               <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
                 <div style={{ fontSize: '48px', marginBottom: '15px' }}>🌱</div>
-                <p>No posts yet. Be the first to share your green journey!</p>
+                <p>No student posts yet. Students will share their sustainability achievements here!</p>
               </div>
             )}
           </div>
@@ -987,6 +1412,24 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
               }}
             >
               🏆 View Leaderboard
+            </button>
+            <button
+              onClick={() => setActiveTab('details')}
+              style={{
+                padding: window.innerWidth < 768 ? '10px 15px' : '15px 25px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                fontSize: window.innerWidth < 768 ? '12px' : '14px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                borderBottom: activeTab === 'details' ? '3px solid #2E7D32' : '3px solid transparent',
+                color: activeTab === 'details' ? '#2E7D32' : '#666',
+                transition: 'all 0.3s',
+                width: window.innerWidth < 480 ? '100%' : 'auto',
+                textAlign: 'center'
+              }}
+            >
+              👤 My Details
             </button>
           </div>
 
@@ -1256,6 +1699,187 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
               </div>
             </div>
           )}
+
+          {activeTab === 'details' && (
+            <div>
+              <h3 style={{ 
+                color: '#2E7D32', 
+                fontSize: window.innerWidth < 768 ? '18px' : '22px', 
+                marginBottom: '20px' 
+              }}>
+                👤 My Details
+              </h3>
+              
+              <div style={{
+                backgroundColor: '#F9F9F9',
+                borderRadius: '15px',
+                padding: window.innerWidth < 768 ? '20px' : '30px'
+              }}>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#2E7D32' }}>
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #81C784',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box'
+                    }}
+                    placeholder="Enter your full name"
+                  />
+                </div>
+
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#2E7D32' }}>
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={profileForm.email}
+                    onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #81C784',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box'
+                    }}
+                    placeholder="Enter your email"
+                  />
+                </div>
+
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#2E7D32' }}>
+                    Department
+                  </label>
+                  <select
+                    value={profileForm.department}
+                    onChange={(e) => setProfileForm({...profileForm, department: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #81C784',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <option value="">Select Department</option>
+                    <option value="Computer Science Engineering">Computer Science Engineering</option>
+                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                    <option value="Civil Engineering">Civil Engineering</option>
+                    <option value="Electrical Engineering">Electrical Engineering</option>
+                    <option value="Electronics Engineering">Electronics Engineering</option>
+                    <option value="Environmental Science">Environmental Science</option>
+                    <option value="Biotechnology">Biotechnology</option>
+                    <option value="Chemical Engineering">Chemical Engineering</option>
+                  </select>
+                </div>
+
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#2E7D32' }}>
+                    Year
+                  </label>
+                  <select
+                    value={profileForm.year}
+                    onChange={(e) => setProfileForm({...profileForm, year: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #81C784',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <option value="">Select Year</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                  </select>
+                </div>
+
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#2E7D32' }}>
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={profileForm.phone}
+                    onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #81C784',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box'
+                    }}
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+
+                <div style={{ marginBottom: '25px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#2E7D32' }}>
+                    Bio
+                  </label>
+                  <textarea
+                    value={profileForm.bio}
+                    onChange={(e) => setProfileForm({...profileForm, bio: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #81C784',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box',
+                      minHeight: '100px',
+                      resize: 'vertical'
+                    }}
+                    placeholder="Tell us about yourself..."
+                  />
+                </div>
+
+                <div style={{ textAlign: 'center' }}>
+                  <button
+                    onClick={handleUpdateProfile}
+                    style={{
+                      backgroundColor: '#2E7D32',
+                      border: '2px solid #2E7D32',
+                      color: 'white',
+                      padding: '15px 40px',
+                      borderRadius: '25px',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      boxShadow: '0 4px 15px rgba(46, 125, 50, 0.3)',
+                      transition: 'all 0.3s'
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.backgroundColor = '#1B5E20';
+                      e.target.style.transform = 'translateY(-2px)';
+                      e.target.style.boxShadow = '0 6px 20px rgba(46, 125, 50, 0.4)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.backgroundColor = '#2E7D32';
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = '0 4px 15px rgba(46, 125, 50, 0.3)';
+                    }}
+                  >
+                    💾 Save Profile
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1506,25 +2130,263 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
         </div>
       )}
 
-      {/* Share Success Popup */}
-      {showSharePopup && (
+      {/* Profile Update Popup */}
+      {showProfileUpdatePopup && (
         <div style={{
           position: 'fixed',
-          top: '20px',
-          right: '20px',
-          backgroundColor: '#4CAF50',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: '#FF9800',
           color: 'white',
-          padding: '15px 20px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          zIndex: 1000,
+          padding: '20px 30px',
+          borderRadius: '12px',
+          boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
+          zIndex: 1001,
           display: 'flex',
           alignItems: 'center',
-          gap: '10px',
-          animation: 'slideInRight 0.3s ease-out'
+          gap: '15px',
+          animation: 'profileSlideIn 0.3s ease-out',
+          minWidth: '350px',
+          textAlign: 'center',
+          cursor: 'pointer'
+        }}
+        onClick={() => {
+          setActiveTab('details');
+          setShowProfileUpdatePopup(false);
+        }}
+        >
+          <span style={{ fontSize: '24px' }}>👤</span>
+          <div>
+            <div style={{ fontWeight: 'bold', fontSize: '16px' }}>Update Your Details in My Details!</div>
+            <div style={{ fontSize: '14px', opacity: 0.9, marginTop: '5px' }}>
+              Click here to go to My Details section
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Modal */}
+      {showProfileModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1002
         }}>
-          <span style={{ fontSize: '20px' }}>✅</span>
-          <span style={{ fontWeight: 'bold' }}>Your Achievement is Shared!</span>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '15px',
+            width: '90%',
+            maxWidth: '500px',
+            maxHeight: '80vh',
+            overflowY: 'auto'
+          }}>
+            <h2 style={{ color: '#2E7D32', marginBottom: '20px', textAlign: 'center' }}>
+              📝 Update Your Profile
+            </h2>
+            
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#2E7D32' }}>
+                Full Name
+              </label>
+              <input
+                type="text"
+                value={profileForm.name}
+                onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '2px solid #81C784',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Enter your full name"
+              />
+            </div>
+
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#2E7D32' }}>
+                Email
+              </label>
+              <input
+                type="email"
+                value={profileForm.email}
+                onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '2px solid #81C784',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Enter your email"
+              />
+            </div>
+
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#2E7D32' }}>
+                Department
+              </label>
+              <select
+                value={profileForm.department}
+                onChange={(e) => setProfileForm({...profileForm, department: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '2px solid #81C784',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <option value="">Select Department</option>
+                <option value="Computer Science Engineering">Computer Science Engineering</option>
+                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                <option value="Civil Engineering">Civil Engineering</option>
+                <option value="Electrical Engineering">Electrical Engineering</option>
+                <option value="Electronics Engineering">Electronics Engineering</option>
+                <option value="Environmental Science">Environmental Science</option>
+                <option value="Biotechnology">Biotechnology</option>
+                <option value="Chemical Engineering">Chemical Engineering</option>
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#2E7D32' }}>
+                Year
+              </label>
+              <select
+                value={profileForm.year}
+                onChange={(e) => setProfileForm({...profileForm, year: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '2px solid #81C784',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <option value="">Select Year</option>
+                <option value="1st Year">1st Year</option>
+                <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="4th Year">4th Year</option>
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#2E7D32' }}>
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                value={profileForm.phone}
+                onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '2px solid #81C784',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Enter your phone number"
+              />
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#2E7D32' }}>
+                Bio
+              </label>
+              <textarea
+                value={profileForm.bio}
+                onChange={(e) => setProfileForm({...profileForm, bio: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '2px solid #81C784',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box',
+                  minHeight: '80px',
+                  resize: 'vertical'
+                }}
+                placeholder="Tell us about yourself..."
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+              <button
+                onClick={() => setShowProfileModal(false)}
+                style={{
+                  backgroundColor: 'transparent',
+                  border: '2px solid #666',
+                  color: '#666',
+                  padding: '12px 25px',
+                  borderRadius: '25px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateProfile}
+                style={{
+                  backgroundColor: '#2E7D32',
+                  border: '2px solid #2E7D32',
+                  color: 'white',
+                  padding: '12px 25px',
+                  borderRadius: '25px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                💾 Save Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* Profile Updated Popup - Horizontal */}
+      {showProfileUpdatedPopup && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          padding: '20px 40px',
+          borderRadius: '12px',
+          boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
+          zIndex: 1001,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '15px',
+          animation: 'profileSlideIn 0.3s ease-out',
+          minWidth: '320px',
+          textAlign: 'center'
+        }}>
+          <span style={{ fontSize: '24px' }}>✅</span>
+          <div>
+            <div style={{ fontWeight: 'bold', fontSize: '16px' }}>Your Profile is Updated!</div>
+          </div>
         </div>
       )}
 
@@ -1537,6 +2399,17 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
             }
             to {
               transform: translateX(0);
+              opacity: 1;
+            }
+          }
+          
+          @keyframes profileSlideIn {
+            from {
+              transform: translate(-50%, -50%) scale(0.8);
+              opacity: 0;
+            }
+            to {
+              transform: translate(-50%, -50%) scale(1);
               opacity: 1;
             }
           }

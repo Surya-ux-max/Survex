@@ -34,7 +34,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # Enable CORS
 CORS(app, resources={
     r"/*": {
-        "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],
+        "origins": ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "http://127.0.0.1:5173"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
@@ -320,6 +320,54 @@ def health_check():
         'message': 'Windsurf API is running',
         'database': 'connected' if mongo.db else 'disconnected'
     }), 200
+
+# Feed endpoint (alias for posts)
+@app.route('/api/feed', methods=['GET'])
+def get_feed():
+    """Get all posts for feed - alias for /api/posts"""
+    try:
+        # Get query parameters
+        limit = int(request.args.get('limit', 20))
+        skip = int(request.args.get('skip', 0))
+        post_type = request.args.get('type')
+        
+        # Build query
+        query = {}
+        if post_type:
+            query['post_type'] = post_type
+        
+        # Get posts with pagination
+        posts = list(mongo.db.posts.find(query)
+                    .sort('timestamp', -1)
+                    .skip(skip)
+                    .limit(limit))
+        
+        total_posts = mongo.db.posts.count_documents(query)
+        
+        # Serialize posts
+        serialized_posts = []
+        for post in posts:
+            if post:
+                serialized_post = {}
+                for key, value in post.items():
+                    if key == '_id':
+                        serialized_post[key] = str(value)
+                    elif isinstance(value, ObjectId):
+                        serialized_post[key] = str(value)
+                    elif isinstance(value, datetime):
+                        serialized_post[key] = value.isoformat()
+                    else:
+                        serialized_post[key] = value
+                serialized_posts.append(serialized_post)
+        
+        return jsonify({
+            'posts': serialized_posts,
+            'total': total_posts,
+            'has_more': (skip + limit) < total_posts
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # Root endpoint
 @app.route('/', methods=['GET'])
