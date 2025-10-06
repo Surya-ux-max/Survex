@@ -44,7 +44,7 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    results.innerHTML += `<p style="color: green;">✅ Registration Success: ${JSON.stringify(data)}</p>`;
+                    results.innerHTML += `<p style="color: green;">✅ Registration Success!: ${JSON.stringify(data)}</p>`;
                 } else {
                     results.innerHTML += `<p style="color: orange;">⚠️ Registration Response: ${JSON.stringify(data)}</p>`;
                 }
