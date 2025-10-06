@@ -5,6 +5,18 @@ A comprehensive full-stack platform for Sri Eshwar College of Engineering that g
 ## 🎯 Overview
 
 Survex is a campus sustainability platform where students participate in eco-challenges, share achievements in a social feed, earn points and badges, while faculty and administrators manage challenges, verify submissions, and track analytics.
+Think of Survex as a social media platform for sustainability. Students can:
+-Take part in eco-challenges,
+-Share their achievements in a social feed,
+-Earn points, badges, and real rewards,
+-Compete on leaderboards,
+-And celebrate their impact with peers.
+
+Meanwhile, faculty and admins can:
+-Create and manage challenges,
+-Verify student submissions,
+-Monitor progress with analytics,
+-And reward students
 
 ## ✨ Features
 
@@ -22,6 +34,13 @@ Survex is a campus sustainability platform where students participate in eco-cha
 - **Profile Management**: Track progress, badges, and achievements
 - **Points & Badges System**: 5-tier progression from Green Beginner to Legend
 
+  ### 👨‍🏫 Faculty/Admin Features
+- **Challenge Management**: Create, and edit challenges
+- **Submission Verification**: Review and approve/reject student submissions
+- **Analytics Dashboard**: Participation rates, environmental impact metrics
+- **Reward Management**: Create and manage reward catalog
+- **User Management**: Monitor student engagement and progress
+
 ### 🌿 Challenge System
 - **7 Categories**: Waste Management, Green Campus, Energy Conservation, Water Conservation, Sustainable Mobility, Awareness & Innovation, Community Impact
 - **Submission Workflow**: Upload proof → Faculty verification → Auto-post to feed
@@ -34,12 +53,6 @@ Survex is a campus sustainability platform where students participate in eco-cha
 - **Reward System**: Certificates, eco-merchandise, meal tokens, vouchers
 - **Social Recognition**: Auto-posts for achievements, follower system
 
-### 👨‍🏫 Faculty/Admin Features
-- **Challenge Management**: Create, edit, and archive challenges
-- **Submission Verification**: Review and approve/reject student submissions
-- **Analytics Dashboard**: Participation rates, environmental impact metrics
-- **Reward Management**: Create and manage reward catalog
-- **User Management**: Monitor student engagement and progress
 
 ## 🛠️ Tech Stack
 
@@ -135,7 +148,7 @@ Frontend runs on `http://localhost:3000`
 
 ### Database Setup
 
-**MongoDB Collections** are automatically created when the application runs. For production, ensure proper indexing:
+**MongoDB Collections** are automatically created when the application runs. For production,  proper indexing is ensured:
 
 ```javascript
 // Recommended indexes
@@ -273,15 +286,6 @@ POST /api/rewards/:id/claim    # Claim reward
 GET  /api/rewards/my-claims    # Get user's claimed rewards
 ```
 
-## 🔒 Security Features
-
-- **JWT Authentication** with secure token handling
-- **Role-based Access Control** (RBAC) for API endpoints
-- **Password Hashing** with bcrypt and salt
-- **Input Validation** and sanitization
-- **CORS Configuration** for secure cross-origin requests
-- **File Upload Security** with type and size validation
-- **Domain Restriction** for college email authentication
 
 ## 🌱 Environmental Impact Tracking
 
@@ -339,29 +343,6 @@ AWS_S3_BUCKET=windsurf-media
 # Frontend
 VITE_API_URL=https://your-api-domain.com/api
 ```
-
-## 🤝 Contributing
-
-1. **Fork the repository**
-2. **Create feature branch**: `git checkout -b feature/amazing-feature`
-3. **Commit changes**: `git commit -m 'Add amazing feature'`
-4. **Push to branch**: `git push origin feature/amazing-feature`
-5. **Open Pull Request**
-
-### Development Guidelines
-- Follow **PEP 8** for Python code
-- Use **ESLint** and **Prettier** for JavaScript
-- Write **descriptive commit messages**
-- Add **comments** for complex logic
-- Test **API endpoints** before committing
-- Ensure **responsive design** on all screen sizes
-
-## 📞 Support
-
-For support and questions:
-- **Email**: support@windsurf-platform.com
-- **Documentation**: [Wiki](https://github.com/your-repo/windsurf-platform/wiki)
-- **Issues**: [GitHub Issues](https://github.com/your-repo/windsurf-platform/issues)
 
 ---
 
