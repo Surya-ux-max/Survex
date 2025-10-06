@@ -1,113 +1,100 @@
-from pymongo import MongoClient
-from bson.objectid import ObjectId
+"""
+User model for Windsurf platform
+"""
+from datetime import datetime
+from bson import ObjectId
 import bcrypt
-from config import Config
+from typing import Dict, List, Optional
 
-client = MongoClient(Config.MONGODB_URI)
-db = client.get_default_database()
-users_collection = db.users
-
-def create_user(name, email, password, role='student', department=None, year=None):
-    """Create a new user"""
-    # Check if user already exists
-    if users_collection.find_one({'email': email}):
-        return None
+class User:
+    def __init__(self, db):
+        self.collection = db.users
     
-    # Hash password
-    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    def create_user(self, user_data: Dict) -> str:
+        """Create a new user"""
+        # Hash password
+        if 'password' in user_data:
+            user_data['password'] = bcrypt.hashpw(
+                user_data['password'].encode('utf-8'), 
+                bcrypt.gensalt()
+            )
+        
+        user_data['created_at'] = datetime.utcnow()
+        user_data['updated_at'] = datetime.utcnow()
+        user_data['eco_points'] = user_data.get('eco_points', 0)
+        user_data['badges'] = user_data.get('badges', [])
+        user_data['challenges_completed'] = user_data.get('challenges_completed', 0)
+        
+        result = self.collection.insert_one(user_data)
+        return str(result.inserted_id)
     
-    user = {
-        'name': name,
-        'email': email,
-        'password_hash': password_hash,
-        'role': role,
-        'department': department,
-        'year': year,
-        'eco_points': 0,
-        'badges': ['🌱 Green Beginner'],
-        'avatar_url': None,
-        'followers': [],
-        'following': [],
-        'created_at': None
-    }
+    def find_by_email(self, email: str) -> Optional[Dict]:
+        """Find user by email"""
+        return self.collection.find_one({"email": email})
     
-    result = users_collection.insert_one(user)
-    user['_id'] = result.inserted_id
-    return user
-
-def verify_password(email, password):
-    """Verify user password"""
-    user = users_collection.find_one({'email': email})
-    if not user:
-        return None
+    def find_by_id(self, user_id: str) -> Optional[Dict]:
+        """Find user by ID"""
+        return self.collection.find_one({"_id": ObjectId(user_id)})
     
-    if bcrypt.checkpw(password.encode('utf-8'), user['password_hash']):
-        return user
-    return None
-
-def get_user_by_id(user_id):
-    """Get user by ID"""
-    return users_collection.find_one({'_id': ObjectId(user_id)})
-
-def get_user_by_email(email):
-    """Get user by email"""
-    return users_collection.find_one({'email': email})
-
-def update_user_points(user_id, points_to_add):
-    """Update user points and recalculate badge"""
-    user = get_user_by_id(user_id)
-    if not user:
-        return None
+    def verify_password(self, password: str, hashed_password: bytes) -> bool:
+        """Verify password"""
+        return bcrypt.checkpw(password.encode('utf-8'), hashed_password)
     
-    new_points = user.get('eco_points', 0) + points_to_add
+    def update_user(self, user_id: str, update_data: Dict) -> bool:
+        """Update user data"""
+        update_data['updated_at'] = datetime.utcnow()
+        result = self.collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": update_data}
+        )
+        return result.modified_count > 0
     
-    # Determine badge tier
-    current_badge = '🌱 Green Beginner'
-    for tier in reversed(Config.BADGE_TIERS):
-        if new_points >= tier['min_points']:
-            current_badge = f"{tier['emoji']} {tier['name']}"
-            break
+    def get_leaderboard(self, limit: int = 15) -> List[Dict]:
+        """Get top users by eco points"""
+        return list(self.collection.find(
+            {"role": "student"},
+            {"password": 0}
+        ).sort("eco_points", -1).limit(limit))
     
-    # Update badges list if new badge achieved
-    badges = user.get('badges', ['🌱 Green Beginner'])
-    if current_badge not in badges:
-        badges.append(current_badge)
+    def add_points(self, user_id: str, points: int) -> bool:
+        """Add eco points to user"""
+        result = self.collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {
+                "$inc": {"eco_points": points, "challenges_completed": 1},
+                "$set": {"updated_at": datetime.utcnow()}
+            }
+        )
+        return result.modified_count > 0
     
-    users_collection.update_one(
-        {'_id': ObjectId(user_id)},
-        {'$set': {'eco_points': new_points, 'badges': badges}}
-    )
+    def get_all_students(self) -> List[Dict]:
+        """Get all student users"""
+        return list(self.collection.find(
+            {"role": "student"},
+            {"password": 0}
+        ).sort("eco_points", -1))
     
-    return new_points
-
-def update_user_profile(user_id, updates):
-    """Update user profile"""
-    users_collection.update_one(
-        {'_id': ObjectId(user_id)},
-        {'$set': updates}
-    )
-    return get_user_by_id(user_id)
-
-def follow_user(follower_id, following_id):
-    """Follow another user"""
-    users_collection.update_one(
-        {'_id': ObjectId(follower_id)},
-        {'$addToSet': {'following': str(following_id)}}
-    )
-    users_collection.update_one(
-        {'_id': ObjectId(following_id)},
-        {'$addToSet': {'followers': str(follower_id)}}
-    )
-    return True
-
-def unfollow_user(follower_id, following_id):
-    """Unfollow a user"""
-    users_collection.update_one(
-        {'_id': ObjectId(follower_id)},
-        {'$pull': {'following': str(following_id)}}
-    )
-    users_collection.update_one(
-        {'_id': ObjectId(following_id)},
-        {'$pull': {'followers': str(follower_id)}}
-    )
-    return True
+    def get_user_stats(self, user_id: str) -> Dict:
+        """Get user statistics"""
+        user = self.find_by_id(user_id)
+        if not user:
+            return {}
+        
+        return {
+            "eco_points": user.get("eco_points", 0),
+            "challenges_completed": user.get("challenges_completed", 0),
+            "badges": user.get("badges", []),
+            "rank": self.get_user_rank(user_id)
+        }
+    
+    def get_user_rank(self, user_id: str) -> int:
+        """Get user's rank in leaderboard"""
+        user = self.find_by_id(user_id)
+        if not user:
+            return 0
+        
+        higher_users = self.collection.count_documents({
+            "role": "student",
+            "eco_points": {"$gt": user.get("eco_points", 0)}
+        })
+        return higher_users + 1
