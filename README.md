@@ -1,4 +1,4 @@
-# 🌿 Windsurf - Campus Sustainability Social Media Platform
+# 🌿 Survex- Campus Sustainability Social Media Platform
 
 A comprehensive full-stack platform for Sri Eshwar College of Engineering that gamifies sustainability through social challenges, rewards, and community engagement.
 
