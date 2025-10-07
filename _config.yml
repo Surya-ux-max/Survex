@@ -1,7 +1,5 @@
 exclude:
   - node_modules
-  - frontend
-  - backend
   - venv_ibm
   - package-lock.json
   - README.md

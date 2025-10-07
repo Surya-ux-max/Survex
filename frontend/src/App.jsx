@@ -20,11 +20,7 @@ function App() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    // Always start with login page - clear any existing sessions
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    
-    // Keep data but force fresh login
+    // Load saved data
     const savedJoinedChallenges = localStorage.getItem('joinedChallenges');
     if (savedJoinedChallenges) {
       try {
@@ -54,9 +50,21 @@ function App() {
       }
     }
 
-    // Always start with login page
-    setCurrentPage('login');
-    setUser(null);
+    // Auto-login as demo student and go directly to dashboard
+    const demoUser = {
+      _id: 'demo-student-' + Date.now(),
+      name: 'Demo Student',
+      email: 'demo.student@college.edu',
+      role: 'student',
+      department: 'Computer Science Engineering',
+      year: '3rd Year',
+      eco_points: 250,
+      badges: ['🌱 Green Beginner', '🌿 Eco Learner']
+    };
+
+    // Set user and go directly to dashboard
+    setUser(demoUser);
+    setCurrentPage('dashboard');
     setLoading(false);
   }, []);
 
@@ -256,9 +264,10 @@ function App() {
     );
   }
 
-  if (!user) {
-    return <Login onLogin={handleLogin} />;
-  }
+  // Skip login page since we auto-login as demo student
+  // if (!user) {
+  //   return <Login onLogin={handleLogin} />;
+  // }
 
   if (currentPage === 'challenges') {
     return <Challenges user={user} onNavigate={handleNavigate} />;

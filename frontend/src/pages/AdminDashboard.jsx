@@ -1192,6 +1192,26 @@ const AdminDashboard = ({ user, onNavigate, submissions: propSubmissions, onSubm
                   </button>
                   <button
                     onClick={() => {
+                      onNavigate('dashboard');
+                      setShowProfileDropdown(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '15px 20px',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                      color: '#2E7D32',
+                      borderBottom: '1px solid #eee',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    🎓 Switch to Student
+                  </button>
+                  <button
+                    onClick={() => {
                       handleLogout();
                       setShowProfileDropdown(false);
                     }}

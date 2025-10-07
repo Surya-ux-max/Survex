@@ -1048,6 +1048,26 @@ const Dashboard = ({ user, onNavigate, joinedChallenges, onJoinChallenge, onUpda
                   </button>
                   <button
                     onClick={() => {
+                      onNavigate('admin-dashboard');
+                      setShowProfileDropdown(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '15px 20px',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                      color: '#1976D2',
+                      borderBottom: '1px solid #eee',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    👨‍💼 Switch to Admin
+                  </button>
+                  <button
+                    onClick={() => {
                       handleLogout();
                       setShowProfileDropdown(false);
                     }}

@@ -1,16 +1,21 @@
+# Core Flask dependencies
 Flask==2.3.3
 Flask-cors==4.0.0
-Flask-PyMongo==2.3.0
-pymongo==4.6.0
-python-dotenv==1.0.0
-bcrypt==4.0.1
-PyJWT==2.10.1
-Pillow==10.0.1
 Werkzeug==2.3.7
-flask-socketio==5.3.6
-python-socketio==5.8.0
-boto3==1.35.0
-google-auth==2.26.1
-google-auth-oauthlib==1.1.0
-urllib3==2.4.0
+python-dotenv==1.0.0
+
+# For production deployment (simplified - no MongoDB required)
 gunicorn==21.2.0
+
+# Optional: Full database support (uncomment if needed)
+# Flask-PyMongo==2.3.0
+# pymongo==4.6.0
+# bcrypt==4.0.1
+# PyJWT==2.10.1
+
+# Optional: File handling (uncomment if needed)
+# Pillow==10.0.1
+
+# Optional: Real-time features (uncomment if needed)
+# flask-socketio==5.3.6
+# python-socketio==5.8.0

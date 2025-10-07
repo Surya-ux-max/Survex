@@ -23,7 +23,7 @@ const Login = ({ onLogin }) => {
       };
 
       // Try to register first, then login
-      const registerResponse = await fetch('http://10.11.144.88:5000/api/auth/register', {
+      const registerResponse = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(demoUser)
@@ -34,7 +34,7 @@ const Login = ({ onLogin }) => {
         loginData = await registerResponse.json();
       } else {
         // If registration fails (user exists), try login
-        const loginResponse = await fetch('http://10.11.144.88:5000/api/auth/login', {
+        const loginResponse = await fetch('http://localhost:5000/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
