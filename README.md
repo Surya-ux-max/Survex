@@ -1,8 +1,10 @@
 <<<<<<< HEAD
-# Windsurf Platform Backend
+Team Hexaura Members 
+1. Tamilselvan P
+2. Zerashahadiya
+3. Vihasini
+4. Suryaprakash S
 
-A comprehensive MongoDB-based backend for the Windsurf Campus Sustainability Platform, built with Flask and designed to support all frontend functionalities including challenge management, user authentication, file uploads, and real-time analytics.
-=======
 # 🌿 Survex- Campus Sustainability Social Media Platform
 
 A comprehensive full-stack platform for Sri Eshwar College of Engineering that gamifies sustainability through social challenges, rewards, and community engagement.
