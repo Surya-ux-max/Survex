@@ -1,8 +1,8 @@
 
 Team Hexaura Members 
 1. Tamilselvan P
-2. Zerashahadiya
-3. Vihasini
+2. Zerashahadiya S
+3. Vihasini K S 
 4. Suryaprakash S
 
 # 🌿 Survex- Campus Sustainability Social Media Platform
