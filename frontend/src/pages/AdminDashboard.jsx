@@ -29,12 +29,12 @@ const AdminDashboard = ({ user, onNavigate, submissions: propSubmissions, onSubm
   const [showProfileUpdatePopup, setShowProfileUpdatePopup] = useState(false);
   const [showProfileUpdatedPopup, setShowProfileUpdatedPopup] = useState(false);
   const [adminProfile, setAdminProfile] = useState({
-    name: 'Dr. Rajesh Kumar',
+    name: 'Dr. Tamilselvan P',
     email: 'admin@sece.ac.in',
     phone: '+91 9876543210',
     department: 'Environmental Sciences',
     designation: 'Head of Sustainability',
-    experience: '15 years',
+    experience: '10 years',
     specialization: 'Environmental Management & Green Technologies'
   });
 
@@ -78,7 +78,7 @@ const AdminDashboard = ({ user, onNavigate, submissions: propSubmissions, onSubm
           description: 'Eliminate single-use plastics from your daily routine for one week.',
           category: 'Waste Reduction',
           difficulty: 'Medium',
-          points: 50,
+          points: 45,
           duration: '7 days',
           status: 'Active',
           participants: 45,
@@ -87,7 +87,7 @@ const AdminDashboard = ({ user, onNavigate, submissions: propSubmissions, onSubm
         },
         {
           _id: '2',
-          title: 'Campus Tree Planting',
+          title: 'Sri Eshwar Campus Tree Planting',
           description: 'Plant and maintain trees around the campus area.',
           category: 'Environmental',
           difficulty: 'Easy',
