@@ -20,7 +20,6 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
   }, []);
 
   useEffect(() => {
-    // Auto-select highlighted challenge when challenges are loaded
     if (highlightChallengeId && challenges.length > 0) {
       const challengeToHighlight = challenges.find(c => c._id === highlightChallengeId);
       if (challengeToHighlight) {
@@ -36,24 +35,22 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
       const documentHeight = document.documentElement.scrollHeight;
       
       setScrollPosition(currentScrollY);
-      
-      // Show scroll buttons if page is scrollable and user has scrolled
       setShowScrollButtons(documentHeight > windowHeight && currentScrollY > 200);
     };
 
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Check initial state
+    handleScroll(); 
     
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const loadChallenges = async () => {
     try {
-      // Mock challenges data with more variety
+     
       const mockChallenges = [
         {
           _id: '1',
-          title: 'Plastic-Free Week Challenge',
+          title: 'Sri Eshwar Plastic-Free Week Challenge',
           description: 'Eliminate single-use plastics from your daily routine for one week.',
           category: 'Waste Reduction',
           difficulty: 'Medium',
@@ -66,7 +63,7 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
         },
         {
           _id: '2',
-          title: 'Campus Tree Planting',
+          title: 'Sri Eshwar Campus Tree Planting',
           description: 'Plant and maintain trees around the campus area.',
           category: 'Environmental',
           difficulty: 'Easy',
@@ -145,7 +142,7 @@ const AllChallenges = ({ user, onNavigate, highlightChallengeId, joinedChallenge
     if (!isAlreadyJoined && challenge) {
       const success = onJoinChallenge(challengeId, challenge);
       if (success) {
-        // Show success popup
+        
         setShowJoinPopup(true);
         setTimeout(() => setShowJoinPopup(false), 3000);
       }
