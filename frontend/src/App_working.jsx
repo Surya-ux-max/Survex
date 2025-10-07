@@ -11,7 +11,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   useEffect(() => {
-    // Check if user is already logged in
+    
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
     
@@ -62,7 +62,7 @@ function App() {
             animation: 'spin 1s linear infinite',
             margin: '0 auto 20px'
           }}></div>
-          <p>Loading Windsurf Platform...</p>
+          <p>Loading Platform...</p>
         </div>
         <style>
           {`
