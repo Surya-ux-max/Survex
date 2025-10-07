@@ -1,19 +1,13 @@
 {
   "version": 2,
   "name": "windsurf-platform",
-  "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "api/**/*.py",
-      "use": "@vercel/python"
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/*.py": {
+      "runtime": "@vercel/python"
     }
-  ],
+  },
   "routes": [
     {
       "src": "/api/(.*)",
@@ -24,11 +18,6 @@
       "dest": "/frontend/dist/$1"
     }
   ],
-  "functions": {
-    "api/*.py": {
-      "runtime": "@vercel/python"
-    }
-  },
   "env": {
     "VITE_API_URL": "/api"
   }
