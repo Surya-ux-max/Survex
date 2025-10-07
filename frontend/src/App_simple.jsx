@@ -47,7 +47,7 @@ function App() {
       </div>
       
       <div style={{ marginTop: '20px' }}>
-        <h2>Demo Login</h2>
+        <h2>Login</h2>
         <p>Try these credentials:</p>
         <ul>
           <li><strong>Student:</strong> john.doe@student.college.edu / password123</li>

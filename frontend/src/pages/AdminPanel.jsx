@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-// Charts temporarily disabled for initial setup
+
 import { Users, Target, CheckCircle, AlertCircle, TrendingUp, Download } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { analytics, submissions, challenges } from '../services/api';
@@ -33,7 +33,7 @@ const AdminPanel = ({ user }) => {
   const handleVerifySubmission = async (submissionId, approved, comment = '') => {
     try {
       await submissions.verify(submissionId, { approved, comment });
-      loadDashboardData(); // Refresh data
+      loadDashboardData(); 
     } catch (error) {
       console.error('Error verifying submission:', error);
     }

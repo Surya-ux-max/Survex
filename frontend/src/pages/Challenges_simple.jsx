@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 const Challenges = ({ user, onNavigate }) => {
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1>🎯 Challenges Page</h1>
+      <h1>Challenges Page</h1>
       <p>Coming soon...</p>
       <button 
         onClick={() => onNavigate('dashboard')}

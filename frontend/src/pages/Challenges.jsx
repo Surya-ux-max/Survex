@@ -50,17 +50,17 @@ const Challenges = ({ user, onNavigate }) => {
   const filterChallenges = () => {
     let filtered = challengeList;
 
-    // Filter by status
+    
     if (filters.status) {
       filtered = filtered.filter(challenge => challenge.status === filters.status);
     }
 
-    // Filter by category
+    
     if (filters.category) {
       filtered = filtered.filter(challenge => challenge.category === filters.category);
     }
 
-    // Filter by search
+    
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(challenge => 

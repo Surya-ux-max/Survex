@@ -639,202 +639,203 @@ const Dashboard = ({ user, onNavigate }) => {
         </div>
       </div>
     </div>
-  );
-};
+//   );
+// };
 
-export default Dashboard;
-                  <h3 style={{ margin: '0 0 10px 0', color: '#2E7D32' }}>{challenge.title}</h3>
-                  <p style={{ margin: '0 0 10px 0', color: '#666' }}>{challenge.description}</p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ 
-                      backgroundColor: '#4CAF50', 
-                      color: 'white', 
-                      padding: '5px 10px', 
-                      borderRadius: '15px',
-                      fontSize: '14px'
-                    }}>
-                      {challenge.points} Points
-                    </span>
-                    <span style={{ fontSize: '14px', color: '#666' }}>
-                      Category: {challenge.category}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>No challenges available</p>
-            )}
-          </div>
+// export default Dashboard;
+//                   <h3 style={{ margin: '0 0 10px 0', color: '#2E7D32' }}>{challenge.title}</h3>
+//                   <p style={{ margin: '0 0 10px 0', color: '#666' }}>{challenge.description}</p>
+//                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+//                     <span style={{ 
+//                       backgroundColor: '#4CAF50', 
+//                       color: 'white', 
+//                       padding: '5px 10px', 
+//                       borderRadius: '15px',
+//                       fontSize: '14px'
+//                     }}>
+//                       {challenge.points} Points
+//                     </span>
+//                     <span style={{ fontSize: '14px', color: '#666' }}>
+//                       Category: {challenge.category}
+//                     </span>
+//                   </div>
+//                 </div>
+//               ))
+//             ) : (
+//               <p>No challenges available</p>
+//             )}
+//           </div>
 
-          {/* Social Feed Section */}
-          <div style={{ 
-            backgroundColor: 'white', 
-            padding: '20px', 
-            borderRadius: '10px', 
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            <h2>🌱 Green Hub Feed</h2>
-            {posts.length > 0 ? (
-              posts.map(post => (
-                <div key={post._id} style={{ 
-                  border: '1px solid #ddd', 
-                  padding: '15px', 
-                  marginBottom: '15px', 
-                  borderRadius: '8px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                    <div style={{ 
-                      width: '40px', 
-                      height: '40px', 
-                      backgroundColor: '#2E7D32', 
-                      borderRadius: '50%', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontWeight: 'bold',
-                      marginRight: '10px'
-                    }}>
-                      {post.student?.name?.charAt(0) || 'U'}
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 'bold' }}>{post.student?.name || 'User'}</div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>
-                        {new Date(post.timestamp).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                  <p style={{ margin: '0 0 10px 0' }}>{post.content}</p>
-                  <div style={{ display: 'flex', gap: '15px', fontSize: '14px', color: '#666' }}>
-                    <span>👍 {post.likes || 0} likes</span>
-                    <span>💬 {post.comments?.length || 0} comments</span>
-                    <span>🔄 {post.shares || 0} shares</span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>No posts yet. Be the first to share!</p>
-            )}
-          </div>
-        </div>
+//           {/* Social Feed Section */}
+//           <div style={{ 
+//             backgroundColor: 'white', 
+//             padding: '20px', 
+//             borderRadius: '10px', 
+//             boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+//           }}>
+//             <h2>🌱 Green Hub Feed</h2>
+//             {posts.length > 0 ? (
+//               posts.map(post => (
+//                 <div key={post._id} style={{ 
+//                   border: '1px solid #ddd', 
+//                   padding: '15px', 
+//                   marginBottom: '15px', 
+//                   borderRadius: '8px'
+//                 }}>
+//                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+//                     <div style={{ 
+//                       width: '40px', 
+//                       height: '40px', 
+//                       backgroundColor: '#2E7D32', 
+//                       borderRadius: '50%', 
+//                       display: 'flex', 
+//                       alignItems: 'center', 
+//                       justifyContent: 'center',
+//                       color: 'white',
+//                       fontWeight: 'bold',
+//                       marginRight: '10px'
+//                     }}>
+//                       {post.student?.name?.charAt(0) || 'U'}
+//                     </div>
+//                     <div>
+//                       <div style={{ fontWeight: 'bold' }}>{post.student?.name || 'User'}</div>
+//                       <div style={{ fontSize: '12px', color: '#666' }}>
+//                         {new Date(post.timestamp).toLocaleDateString()}
+//                       </div>
+//                     </div>
+//                   </div>
+//                   <p style={{ margin: '0 0 10px 0' }}>{post.content}</p>
+//                   <div style={{ display: 'flex', gap: '15px', fontSize: '14px', color: '#666' }}>
+//                     <span>👍 {post.likes || 0} likes</span>
+//                     <span>💬 {post.comments?.length || 0} comments</span>
+//                     <span>🔄 {post.shares || 0} shares</span>
+//                   </div>
+//                 </div>
+//               ))
+//             ) : (
+//               <p>No posts yet. Be the first to share!</p>
+//             )}
+//           </div>
+//         </div>
 
-        {/* Role-Based Quick Actions */}
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '20px', 
-          borderRadius: '10px', 
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          marginTop: '20px',
-          textAlign: 'center'
-        }}>
-          <h2>🚀 Quick Actions</h2>
+//         {/* Role-Based Quick Actions */}
+//         <div style={{ 
+//           backgroundColor: 'white', 
+//           padding: '20px', 
+//           borderRadius: '10px', 
+//           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+//           marginTop: '20px',
+//           textAlign: 'center'
+//         }}>
+//           <h2>🚀 Quick Actions</h2>
           
-          {user?.role === 'student' ? (
-            <div>
-              <p style={{ color: '#666', marginBottom: '20px' }}>Student Dashboard - Participate in challenges and earn rewards!</p>
-              <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button 
-                  onClick={() => onNavigate && onNavigate('challenges')}
-                  style={{ 
-                    backgroundColor: '#2E7D32', 
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '12px 24px', 
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '16px'
-                  }}>
-                  🎯 Join New Challenge
-                </button>
-                <button 
-                  onClick={() => onNavigate && onNavigate('leaderboard')}
-                  style={{ 
-                    backgroundColor: '#1976D2', 
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '12px 24px', 
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '16px'
-                  }}>
-                  🏆 View Leaderboard
-                </button>
-                <button 
-                  onClick={() => onNavigate && onNavigate('rewards')}
-                  style={{ 
-                    backgroundColor: '#F57C00', 
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '12px 24px', 
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '16px'
-                  }}>
-                  🎁 Redeem Rewards
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <p style={{ color: '#666', marginBottom: '20px' }}>Admin Dashboard - Manage challenges and monitor platform activity!</p>
-              <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button 
-                  onClick={() => onNavigate && onNavigate('challenges')}
-                  style={{ 
-                    backgroundColor: '#7B1FA2', 
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '12px 24px', 
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '16px'
-                  }}>
-                  ➕ Create Challenge
-                </button>
-                <button style={{ 
-                  backgroundColor: '#D32F2F', 
-                  color: 'white', 
-                  border: 'none', 
-                  padding: '12px 24px', 
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px'
-                }}>
-                  ✅ Verify Submissions
-                </button>
-                <button 
-                  onClick={() => onNavigate && onNavigate('leaderboard')}
-                  style={{ 
-                    backgroundColor: '#1976D2', 
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '12px 24px', 
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '16px'
-                  }}>
-                  📊 View Analytics
-                </button>
-                <button 
-                  onClick={() => onNavigate && onNavigate('rewards')}
-                  style={{ 
-                    backgroundColor: '#F57C00', 
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '12px 24px', 
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '16px'
-                  }}>
-                  🎁 Manage Rewards
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
+//           {user?.role === 'student' ? (
+//             <div>
+//               <p style={{ color: '#666', marginBottom: '20px' }}>Student Dashboard - Participate in challenges and earn rewards!</p>
+//               <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+//                 <button 
+//                   onClick={() => onNavigate && onNavigate('challenges')}
+//                   style={{ 
+//                     backgroundColor: '#2E7D32', 
+//                     color: 'white', 
+//                     border: 'none', 
+//                     padding: '12px 24px', 
+//                     borderRadius: '8px',
+//                     cursor: 'pointer',
+//                     fontSize: '16px'
+//                   }}>
+//                   🎯 Join New Challenge
+//                 </button>
+//                 <button 
+//                   onClick={() => onNavigate && onNavigate('leaderboard')}
+//                   style={{ 
+//                     backgroundColor: '#1976D2', 
+//                     color: 'white', 
+//                     border: 'none', 
+//                     padding: '12px 24px', 
+//                     borderRadius: '8px',
+//                     cursor: 'pointer',
+//                     fontSize: '16px'
+//                   }}>
+//                   🏆 View Leaderboard
+//                 </button>
+//                 <button 
+//                   onClick={() => onNavigate && onNavigate('rewards')}
+//                   style={{ 
+//                     backgroundColor: '#F57C00', 
+//                     color: 'white', 
+//                     border: 'none', 
+//                     padding: '12px 24px', 
+//                     borderRadius: '8px',
+//                     cursor: 'pointer',
+//                     fontSize: '16px'
+//                   }}>
+//                   🎁 Redeem Rewards
+//                 </button>
+//               </div>
+//             </div>
+//           ) : (
+//             <div>
+//               <p style={{ color: '#666', marginBottom: '20px' }}>Admin Dashboard - Manage challenges and monitor platform activity!</p>
+//               <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+//                 <button 
+//                   onClick={() => onNavigate && onNavigate('challenges')}
+//                   style={{ 
+//                     backgroundColor: '#7B1FA2', 
+//                     color: 'white', 
+//                     border: 'none', 
+//                     padding: '12px 24px', 
+//                     borderRadius: '8px',
+//                     cursor: 'pointer',
+//                     fontSize: '16px'
+//                   }}>
+//                   ➕ Create Challenge
+//                 </button>
+//                 <button style={{ 
+//                   backgroundColor: '#D32F2F', 
+//                   color: 'white', 
+//                   border: 'none', 
+//                   padding: '12px 24px', 
+//                   borderRadius: '8px',
+//                   cursor: 'pointer',
+//                   fontSize: '16px'
+//                 }}>
+//                   ✅ Verify Submissions
+//                 </button>
+//                 <button 
+//                   onClick={() => onNavigate && onNavigate('leaderboard')}
+//                   style={{ 
+//                     backgroundColor: '#1976D2', 
+//                     color: 'white', 
+//                     border: 'none', 
+//                     padding: '12px 24px', 
+//                     borderRadius: '8px',
+//                     cursor: 'pointer',
+//                     fontSize: '16px'
+//                   }}>
+//                   📊 View Analytics
+//                 </button>
+//                 <button 
+//                   onClick={() => onNavigate && onNavigate('rewards')}
+//                   style={{ 
+//                     backgroundColor: '#F57C00', 
+//                     color: 'white', 
+//                     border: 'none', 
+//                     padding: '12px 24px', 
+//                     borderRadius: '8px',
+//                     cursor: 'pointer',
+//                     fontSize: '16px'
+//                   }}>
+//                   🎁 Manage Rewards
+//                 </button>
+//               </div>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 
-export default Dashboard;
+// export default Dashboard;
+
