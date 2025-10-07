@@ -27,7 +27,6 @@ const Leaderboard = ({ user, onNavigate }) => {
       setGlobalLeaderboard(globalData.leaderboard || []);
       setDepartmentLeaderboard(departmentData.leaderboard || []);
 
-      // Find user's rank
       const userIndex = globalData.leaderboard?.findIndex(u => u._id === user?._id);
       if (userIndex !== -1) {
         setUserRank(userIndex + 1);
