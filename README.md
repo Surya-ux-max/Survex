@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 Team Hexaura Members 
 1. Tamilselvan P
 2. Zerashahadiya
@@ -41,34 +41,34 @@ Meanwhile, faculty and admins can:
 - **Profile Management**: Track progress, badges, and achievements
 - **Points & Badges System**: 5-tier progression from Green Beginner to Legend
 
-  ### 👨‍🏫 Faculty/Admin Features
+  👨‍🏫 Faculty/Admin Features
 - **Challenge Management**: Create, and edit challenges
 - **Submission Verification**: Review and approve/reject student submissions
 - **Analytics Dashboard**: Participation rates, environmental impact metrics
 - **Reward Management**: Create and manage reward catalog
 - **User Management**: Monitor student engagement and progress
 
-### 🌿 Challenge System
+ 🌿 Challenge System
 - **7 Categories**: Waste Management, Green Campus, Energy Conservation, Water Conservation, Sustainable Mobility, Awareness & Innovation, Community Impact
 - **Submission Workflow**: Upload proof → Faculty verification → Auto-post to feed
 - **Point Rewards**: Earn points for verified challenge completions
 - **Real-time Updates**: Notifications for challenge updates and verifications
 
-### 🏆 Gamification
+ 🏆 Gamification
 - **Badge Tiers**: 🌱 Green Beginner → 🌿 Eco Learner → 🌾 Sustainability Hero → 🌳 Eco-Champion → 🏅 Legend
 - **Leaderboards**: Global, departmental, and weekly rankings
 - **Reward System**: Certificates, eco-merchandise, meal tokens, vouchers
 - **Social Recognition**: Auto-posts for achievements, follower system
 
 
-## 🛠️ Tech Stack
+ 🛠️ Tech Stack
 
-### Frontend
+ Frontend
 - **React.js 18** with modern hooks and functional components
 - **Tailwind CSS** for responsive, utility-first styling
 - **React Router** for client-side routing
 
-### Backend
+ Backend
 - **Python Flask** REST API with modular blueprint structure
 - **MongoDB** with PyMongo for flexible document storage
 - **JWT** for stateless authentication
@@ -76,7 +76,7 @@ Meanwhile, faculty and admins can:
 - **Flask-CORS** for cross-origin resource sharing
 - **Google OAuth 2.0** for social authentication
 
-### Database Schema
+ Database Schema
 ```
 Collections:
 - users: Profile data, points, badges, followers
@@ -130,7 +130,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-<<<<<<< HEAD
+
 3. **Set up environment variables**
 =======
 4. **Environment configuration**
@@ -165,7 +165,7 @@ ALLOWED_DOMAIN=student.college.edu
 
 6. **Start the server**
 ```bash
-python app.py
+python app_mongo.py
 ```
 Backend runs on `http://localhost:5000`
 
@@ -332,13 +332,7 @@ http://localhost:5000
 - `GET /api/uploads/info/{type}/{user_id}/{filename}` - Get file info
 - `DELETE /api/uploads/delete/{type}/{user_id}/{filename}` - Delete file
 
-## 🔐 Authentication
 
-The API uses JWT (JSON Web Tokens) for authentication. Include the token in the Authorization header:
-
-```bash
-Authorization: Bearer <your-jwt-token>
-```
 
 ### Demo Credentials
 - **Admin**: admin@sece.ac.in / admin123
@@ -543,7 +537,7 @@ curl -X POST http://localhost:5000/api/auth/login \
 - API rate limiting
 - Comprehensive logging
 
-## 🤝 Contributing
+ 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -551,11 +545,11 @@ curl -X POST http://localhost:5000/api/auth/login \
 4. Add tests if applicable
 5. Submit a pull request
 
-## 📄 License
+ 📄 License
 
 This project is part of the Windsurf Campus Sustainability Platform.
 
-## 🆘 Support
+ 🆘 Support
 
 For issues and questions:
 1. Check the logs in the console
