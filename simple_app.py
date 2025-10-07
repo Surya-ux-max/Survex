@@ -8,8 +8,6 @@ from simple_auth import auth_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
-
-# Enable CORS with specific settings
 CORS(app, resources={
     r"/*": {
         "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],
