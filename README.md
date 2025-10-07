@@ -560,7 +560,7 @@ For issues and questions:
 
 ---
 
-**Windsurf Platform Backend v2.0.0** - Built with ❤️ for campus sustainability
+Platform Backend v2.0.0** - Built with ❤️ for campus sustainability
 =======
 windsurf-platform/
 ├── backend/
