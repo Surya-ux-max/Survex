@@ -225,8 +225,7 @@ backend/
     ├── posts/
     └── submissions/
 ```
-
-## 🔧 Configuration
+🔧 Configuration
 
 ### Environment Variables (.env)
 
